@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/user/coc/internal/app/auth"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
-	"github.com/user/coc/internal/auth"
 	"github.com/user/coc/internal/config"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/router"

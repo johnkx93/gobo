@@ -125,7 +125,7 @@ Content-Type: application/json
 In your handlers, you can access the authenticated user from the request context:
 
 ```go
-import "github.com/user/coc/internal/auth"
+import "github.com/user/coc/internal/app/coc/auth"
 
 func (h *Handler) MyHandler(w http.ResponseWriter, r *http.Request) {
     user := auth.UserFromContext(r)

@@ -169,7 +169,6 @@ func (s *Service) DeleteUser(ctx context.Context, id string) error {
 
 // Helper functions
 func toUserResponse(user *db.User) *UserResponse {
-	// Note: password_hash is intentionally excluded from response for security
 	return &UserResponse{
 		ID:        uuid.UUID(user.ID.Bytes).String(),
 		Email:     user.Email,

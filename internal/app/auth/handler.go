@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/response"
@@ -35,7 +36,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, user, err := h.service.Login(r.Context(), req.Email, req.Password)
+	token, user, err := h.service.Login(r.Context(), strings.TrimSpace(req.Email), strings.TrimSpace(req.Password))
 	if err != nil {
 		response.HandleServiceError(w, err)
 		return
@@ -77,11 +78,11 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.Register(
 		r.Context(),
-		req.Email,
-		req.Username,
-		req.Password,
-		req.FirstName,
-		req.LastName,
+		strings.TrimSpace(req.Email),
+		strings.TrimSpace(req.Username),
+		strings.TrimSpace(req.Password),
+		strings.TrimSpace(req.FirstName),
+		strings.TrimSpace(req.LastName),
 	)
 
 	if err != nil {
