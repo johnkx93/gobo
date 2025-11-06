@@ -3,6 +3,7 @@ module github.com/user/coc
 go 1.22
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.8.2
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/google/uuid v1.6.0
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	github.com/brianvoe/gofakeit/v7 v7.8.2 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

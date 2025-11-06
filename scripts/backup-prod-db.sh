@@ -16,11 +16,16 @@ mkdir -p backups/production
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTPUT_FILE="backups/production/prod-backup-${TIMESTAMP}.sql"
 
-echo "📦 Backing up production database..."
-echo "Output: $OUTPUT_FILE"
+# echo "📦 Backing up production database..."
+# echo "Output: $OUTPUT_FILE"
+echo "HAVENT IMPLEMENT pg_dump / db backup YET"
+echo "HAVENT IMPLEMENT pg_dump / db backup YET"
+echo "HAVENT IMPLEMENT pg_dump / db backup YET"
+echo "HAVENT IMPLEMENT pg_dump / db backup YET"
+echo "HAVENT IMPLEMENT pg_dump / db backup YET"
 
 # Use pg_dump with connection string
-pg_dump "$PRODUCTION_DATABASE_URL" > "$OUTPUT_FILE"
+# pg_dump "$PRODUCTION_DATABASE_URL" > "$OUTPUT_FILE"
 
 if [ $? -eq 0 ]; then
     echo "✅ Backup created successfully: $OUTPUT_FILE"
