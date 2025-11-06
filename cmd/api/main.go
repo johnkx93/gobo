@@ -7,25 +7,44 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
+	"github.com/user/coc/internal/auth"
 	"github.com/user/coc/internal/config"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/router"
+	"github.com/user/coc/internal/validation"
 )
 
 func main() {
 
-	// Setup logger
+	// Setup logger (level can be controlled with LOG_LEVEL env var)
+	level := slog.LevelInfo
+	if v := strings.ToLower(strings.TrimSpace(os.Getenv("LOG_LEVEL"))); v != "" {
+		switch v {
+		case "debug":
+			level = slog.LevelDebug
+		case "info":
+			level = slog.LevelInfo
+		case "warn", "warning":
+			level = slog.LevelWarn
+		case "error":
+			level = slog.LevelError
+		default:
+			// unknown value -> keep default (info)
+		}
+	}
+
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: level,
 	}))
 	slog.SetDefault(logger)
 
-	// Load configuration
+	// use config.go to load .env and validate config
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("failed to load configuration", "error", err)
@@ -49,16 +68,31 @@ func main() {
 	// Initialize queries
 	queries := db.New(pool)
 
+	// Initialize validator with i18n support (en, zh)
+	validator := validation.New()
+
+	// Parse bearer token duration
+	bearerTokenDuration, err := time.ParseDuration(cfg.BearerTokenDuration)
+	if err != nil {
+		slog.Error("invalid BEARER_TOKEN_DURATION format", "error", err)
+		os.Exit(1)
+	}
+
 	// Initialize services
 	userService := user.NewService(queries)
 	orderService := order.NewService(queries)
+	authService := auth.NewService(queries, cfg.JWTSecret, bearerTokenDuration)
 
-	// Initialize handlers
-	userHandler := user.NewHandler(userService)
-	orderHandler := order.NewHandler(orderService)
+	// Initialize handlers (pass shared validator instance)
+	userHandler := user.NewHandler(userService, validator)
+	orderHandler := order.NewHandler(orderService, validator)
+	authHandler := auth.NewHandler(authService, validator)
+
+	// Initialize auth middleware
+	authMiddleware := auth.Middleware(authService, queries)
 
 	// Setup router
-	r := router.New(userHandler, orderHandler)
+	r := router.New(userHandler, orderHandler, authHandler, authMiddleware)
 
 	// Create HTTP server
 	server := &http.Server{

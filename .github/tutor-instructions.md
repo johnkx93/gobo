@@ -146,13 +146,6 @@ Common pitfalls and edge cases for students to watch
 - Mixing environment DB URLs — Makefile uses localhost; Docker can map ports; ensure `DATABASE_URL` matches.
 - Tests that depend on a real DB: prefer using a test container or mocking queries.
 
-Suggested next steps for the tutor
----------------------------------
-
-1. Ask the student to run the quickstart and create a user and an order. Watch logs together.
-2. Have the student open `cmd/api/main.go` and draw (or describe) the wiring: config -> db -> queries -> services -> handlers -> router.
-3. Assign the "Add a new endpoint" exercise and review the PR together.
-
 References
 ----------
 
@@ -162,8 +155,5 @@ References
 - App entrypoint: `cmd/api/main.go`
 - Modules: `internal/app/user` and `internal/app/order`
 
-Completion note
----------------
 
-This file is intentionally hands-on: include concrete exercises and short walkthrough prompts for the student. If you want, I can also generate a short checklist of 5 paired-programming exercises with step-by-step hints and starter patches.
-
+Do not generate any code of file unless requested by user.

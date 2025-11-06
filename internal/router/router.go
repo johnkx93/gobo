@@ -4,14 +4,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
+	"github.com/user/coc/internal/auth"
 	"github.com/user/coc/internal/middleware"
-	"github.com/go-chi/chi/v5"
 )
 
 // New creates a new HTTP router with all routes configured
-func New(userHandler *user.Handler, orderHandler *order.Handler) http.Handler {
+func New(userHandler *user.Handler, orderHandler *order.Handler, authHandler *auth.Handler, authMiddleware func(http.Handler) http.Handler) http.Handler {
 	r := chi.NewRouter()
 
 	// Global middleware
@@ -30,8 +31,15 @@ func New(userHandler *user.Handler, orderHandler *order.Handler) http.Handler {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(middleware.ContentType)
 
-		// User routes
+		// Auth routes (public)
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/login", authHandler.Login)
+			r.Post("/register", authHandler.Register)
+		})
+
+		// User routes (protected)
 		r.Route("/users", func(r chi.Router) {
+			r.Use(authMiddleware) // Protect all user routes
 			r.Post("/", userHandler.CreateUser)
 			r.Get("/", userHandler.ListUsers)
 			r.Get("/{id}", userHandler.GetUser)
@@ -39,8 +47,9 @@ func New(userHandler *user.Handler, orderHandler *order.Handler) http.Handler {
 			r.Delete("/{id}", userHandler.DeleteUser)
 		})
 
-		// Order routes
+		// Order routes (protected)
 		r.Route("/orders", func(r chi.Router) {
+			r.Use(authMiddleware) // Protect all order routes
 			r.Post("/", orderHandler.CreateOrder)
 			r.Get("/", orderHandler.ListOrders)
 			r.Get("/{id}", orderHandler.GetOrder)

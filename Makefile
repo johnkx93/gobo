@@ -64,7 +64,7 @@ sqlc-generate: ## Generate sqlc code
 	sqlc generate
 
 run: ## Run the application
-	go run cmd/api/main.go
+	LOG_LEVEL=debug go run cmd/api/main.go
 
 build: ## Build the application
 	@mkdir -p bin
