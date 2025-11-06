@@ -31,7 +31,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		errorMsg := h.validate.TranslateErrors(r, err)
+		errorMsg := h.validate.TranslateErrors(err)
 		response.Error(w, http.StatusBadRequest, errorMsg)
 		return
 	}
@@ -71,7 +71,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		errorMsg := h.validate.TranslateErrors(r, err)
+		errorMsg := h.validate.TranslateErrors(err)
 		response.Error(w, http.StatusBadRequest, errorMsg)
 		return
 	}

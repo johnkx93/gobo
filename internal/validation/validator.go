@@ -1,53 +1,45 @@
 package validation
 
 import (
-	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/go-playground/locales/en"
-	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
-	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 )
 
-// Validator wraps go-playground validator with i18n support
+// Validator wraps go-playground validator with English translations
 type Validator struct {
 	validate *validator.Validate
-	uni      *ut.UniversalTranslator
+	trans    ut.Translator
 }
 
-// New creates and configures a new Validator with i18n support for en, ms, zh
+// New creates and configures a new Validator with English translations
 func New() *Validator {
 	validate := validator.New()
 
 	// Register custom tag name function to use JSON field names in error messages
-	// validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-	// 	name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-	// 	if name == "" || name == "-" {
-	// 		return fld.Name
-	// 	}
-	// 	return name
-	// })
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "" || name == "-" {
+			return fld.Name
+		}
+		return name
+	})
 
-	// Setup locales
+	// Setup English locale
 	enLocale := en.New()
-	zhLocale := zh.New()
+	uni := ut.New(enLocale, enLocale)
 
-	// Create universal translator with English as fallback
-	uni := ut.New(enLocale, enLocale, zhLocale)
-
-	// Register default translations for supported languages
-	enTrans, _ := uni.GetTranslator("en")
-	en_translations.RegisterDefaultTranslations(validate, enTrans)
-
-	zhTrans, _ := uni.GetTranslator("zh")
-	zh_translations.RegisterDefaultTranslations(validate, zhTrans)
+	// Register English translations
+	trans, _ := uni.GetTranslator("en")
+	en_translations.RegisterDefaultTranslations(validate, trans)
 
 	v := &Validator{
 		validate: validate,
-		uni:      uni,
+		trans:    trans,
 	}
 
 	// Register custom validators
@@ -69,8 +61,8 @@ func (v *Validator) GetValidator() *validator.Validate {
 	return v.validate
 }
 
-// TranslateErrors translates the first validation error based on Accept-Language header
-func (v *Validator) TranslateErrors(r *http.Request, err error) string {
+// TranslateErrors translates the first validation error to English
+func (v *Validator) TranslateErrors(err error) string {
 	if err == nil {
 		return ""
 	}
@@ -85,46 +77,11 @@ func (v *Validator) TranslateErrors(r *http.Request, err error) string {
 		return ""
 	}
 
-	// Get translator based on Accept-Language header
-	locale := v.extractLocale(r)
-	trans, found := v.uni.GetTranslator(locale)
-	if !found {
-		trans, _ = v.uni.GetTranslator("en") // fallback to English
-	}
-
 	// Translate only the first error
 	firstErr := validationErrs[0]
-	translatedMsg := firstErr.Translate(trans)
+	translatedMsg := firstErr.Translate(v.trans)
 
 	return translatedMsg
-}
-
-// extractLocale extracts locale from Accept-Language header
-// Returns "en", "ms", or "zh" based on header, defaults to "en"
-func (v *Validator) extractLocale(r *http.Request) string {
-	return "en"
-	// acceptLang := r.Header.Get("Accept-Language")
-	// if acceptLang == "" {
-	// 	return "en"
-	// }
-
-	// // Parse Accept-Language header (simple implementation)
-	// // Format: "en-US,en;q=0.9,ms;q=0.8,zh-CN;q=0.7"
-	// parts := strings.Split(acceptLang, ",")
-	// for _, part := range parts {
-	// 	lang := strings.TrimSpace(strings.Split(part, ";")[0])
-	// 	lang = strings.ToLower(lang)
-
-	// 	// Match primary language code
-	// 	if strings.HasPrefix(lang, "en") {
-	// 		return "en"
-	// 	}
-	// 	if strings.HasPrefix(lang, "zh") {
-	// 		return "zh"
-	// 	}
-	// }
-
-	// return "en"
 }
 
 // registerCustomValidators registers custom validation functions
@@ -175,8 +132,7 @@ func (v *Validator) registerCustomValidators() {
 // registerCustomMessages registers custom error messages for validation tags
 func (v *Validator) registerCustomMessages() {
 	// Custom message for "required" tag in English
-	enTrans, _ := v.uni.GetTranslator("en")
-	v.validate.RegisterTranslation("required", enTrans,
+	v.validate.RegisterTranslation("required", v.trans,
 		func(ut ut.Translator) error {
 			return ut.Add("required", "{0} is required and cannot be empty", true)
 		},
@@ -187,7 +143,7 @@ func (v *Validator) registerCustomMessages() {
 	)
 
 	// Custom message for "email" tag in English
-	v.validate.RegisterTranslation("email", enTrans,
+	v.validate.RegisterTranslation("email", v.trans,
 		func(ut ut.Translator) error {
 			return ut.Add("email", "{0} must be a valid email address", true)
 		},
@@ -198,7 +154,7 @@ func (v *Validator) registerCustomMessages() {
 	)
 
 	// Custom message for "min" tag in English
-	v.validate.RegisterTranslation("min", enTrans,
+	v.validate.RegisterTranslation("min", v.trans,
 		func(ut ut.Translator) error {
 			return ut.Add("min", "{0} must be at least {1} characters long", true)
 		},
@@ -209,7 +165,7 @@ func (v *Validator) registerCustomMessages() {
 	)
 
 	// Register custom validator messages
-	v.validate.RegisterTranslation("notbadword", enTrans,
+	v.validate.RegisterTranslation("notbadword", v.trans,
 		func(ut ut.Translator) error {
 			return ut.Add("notbadword", "{0} contains inappropriate content", true)
 		},
@@ -219,31 +175,9 @@ func (v *Validator) registerCustomMessages() {
 		},
 	)
 
-	v.validate.RegisterTranslation("strongpassword", enTrans,
+	v.validate.RegisterTranslation("strongpassword", v.trans,
 		func(ut ut.Translator) error {
 			return ut.Add("strongpassword", "{0} must be at least 8 characters and contain uppercase, lowercase, and digit", true)
-		},
-		func(ut ut.Translator, fe validator.FieldError) string {
-			t, _ := ut.T("strongpassword", fe.Field())
-			return t
-		},
-	)
-
-	// Chinese translations for custom validators
-	zhTrans, _ := v.uni.GetTranslator("zh")
-	v.validate.RegisterTranslation("notbadword", zhTrans,
-		func(ut ut.Translator) error {
-			return ut.Add("notbadword", "{0}包含不当内容", true)
-		},
-		func(ut ut.Translator, fe validator.FieldError) string {
-			t, _ := ut.T("notbadword", fe.Field())
-			return t
-		},
-	)
-
-	v.validate.RegisterTranslation("strongpassword", zhTrans,
-		func(ut ut.Translator) error {
-			return ut.Add("strongpassword", "{0}必须至少8个字符，并包含大写、小写字母和数字", true)
 		},
 		func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("strongpassword", fe.Field())
