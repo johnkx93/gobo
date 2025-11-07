@@ -1,4 +1,4 @@
 - save log into files for analysis and debugging purpose.
 - what happen when connection pool is full?
-- standardise return response format
-- folder structure enquiry
+- audit trail
+- testing

@@ -16,6 +16,7 @@ import (
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/config"
 	"github.com/user/coc/internal/db"
+	"github.com/user/coc/internal/middleware"
 	"github.com/user/coc/internal/router"
 	"github.com/user/coc/internal/validation"
 )
@@ -88,8 +89,8 @@ func main() {
 	orderHandler := order.NewHandler(orderService, validator)
 	authHandler := auth.NewHandler(authService, validator)
 
-	// Initialize auth middleware
-	authMiddleware := auth.Middleware(authService, queries)
+	// Initialize auth middleware (moved to internal/middleware)
+	authMiddleware := middleware.Middleware(authService, queries)
 
 	// Setup router
 	r := router.New(userHandler, orderHandler, authHandler, authMiddleware)

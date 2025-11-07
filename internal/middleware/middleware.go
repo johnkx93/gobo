@@ -1,10 +1,11 @@
-package auth
+package middleware
 
 import (
 	"context"
 	"net/http"
 	"strings"
 
+	"github.com/user/coc/internal/app/auth"
 	"github.com/user/coc/internal/db"
 )
 
@@ -16,7 +17,7 @@ const (
 )
 
 // Middleware creates a middleware that validates JWT tokens and adds user to context
-func Middleware(authService *Service, queries *db.Queries) func(http.Handler) http.Handler {
+func Middleware(authService *auth.Service, queries *db.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get token from Authorization header
@@ -28,7 +29,7 @@ func Middleware(authService *Service, queries *db.Queries) func(http.Handler) ht
 
 			// Check if token starts with "Bearer "
 			parts := strings.SplitN(authHeader, " ", 2)
-			if len(parts) != 2 || parts[0] != "Bearer" {
+			if len(parts) != 2 || (parts[0] != "Bearer" && parts[0] != "bearer") {
 				respondUnauthorized(w, "invalid authorization header format")
 				return
 			}
