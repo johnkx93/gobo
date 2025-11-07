@@ -19,6 +19,8 @@ func New(userHandler *user.Handler, orderHandler *order.Handler, authHandler *au
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recovery)
 	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(middleware.RequestID)    // Add request ID to all requests
+	r.Use(middleware.AuditContext) // Add IP and user agent to all requests
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

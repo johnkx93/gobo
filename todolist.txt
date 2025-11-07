@@ -1,4 +1,21 @@
 - save log into files for analysis and debugging purpose.
 - what happen when connection pool is full?
 - audit trail
+- error logging
+- automate table creation
 - testing
+- api implementation
+- never delete user, only active inactive
+
+1. Unit Tests        → Test individual components (audit service methods)
+2. Integration Tests → Test full flow (service → audit → database)
+3. Manual Tests      → Test via HTTP endpoints
+4. Query Tests       → Verify audit data is queryable
+
+
+
+
+instruction
+- always add logging
+- always add new extension into init.sql
+- refer makefile for command

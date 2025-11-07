@@ -5,8 +5,174 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AuditAction string
+
+const (
+	AuditActionCREATE AuditAction = "CREATE"
+	AuditActionUPDATE AuditAction = "UPDATE"
+	AuditActionDELETE AuditAction = "DELETE"
+)
+
+func (e *AuditAction) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuditAction(s)
+	case string:
+		*e = AuditAction(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuditAction: %T", src)
+	}
+	return nil
+}
+
+type NullAuditAction struct {
+	AuditAction AuditAction `json:"audit_action"`
+	Valid       bool        `json:"valid"` // Valid is true if AuditAction is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuditAction) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuditAction, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuditAction.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuditAction) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuditAction), nil
+}
+
+type AuditLog struct {
+	ID         pgtype.UUID        `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Action     AuditAction        `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	OldData    []byte             `json:"old_data"`
+	NewData    []byte             `json:"new_data"`
+	RequestID  pgtype.Text        `json:"request_id"`
+	IpAddress  pgtype.Text        `json:"ip_address"`
+	UserAgent  pgtype.Text        `json:"user_agent"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type AuditLogs202511 struct {
+	ID         pgtype.UUID        `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Action     AuditAction        `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	OldData    []byte             `json:"old_data"`
+	NewData    []byte             `json:"new_data"`
+	RequestID  pgtype.Text        `json:"request_id"`
+	IpAddress  pgtype.Text        `json:"ip_address"`
+	UserAgent  pgtype.Text        `json:"user_agent"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type AuditLogs202512 struct {
+	ID         pgtype.UUID        `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Action     AuditAction        `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	OldData    []byte             `json:"old_data"`
+	NewData    []byte             `json:"new_data"`
+	RequestID  pgtype.Text        `json:"request_id"`
+	IpAddress  pgtype.Text        `json:"ip_address"`
+	UserAgent  pgtype.Text        `json:"user_agent"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type AuditLogsDefault struct {
+	ID         pgtype.UUID        `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Action     AuditAction        `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	OldData    []byte             `json:"old_data"`
+	NewData    []byte             `json:"new_data"`
+	RequestID  pgtype.Text        `json:"request_id"`
+	IpAddress  pgtype.Text        `json:"ip_address"`
+	UserAgent  pgtype.Text        `json:"user_agent"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type ErrorLog struct {
+	ID            pgtype.UUID        `json:"id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	RequestID     pgtype.Text        `json:"request_id"`
+	ErrorType     string             `json:"error_type"`
+	ErrorMessage  string             `json:"error_message"`
+	StackTrace    pgtype.Text        `json:"stack_trace"`
+	RequestPath   pgtype.Text        `json:"request_path"`
+	RequestMethod pgtype.Text        `json:"request_method"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type ErrorLogs202511 struct {
+	ID            pgtype.UUID        `json:"id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	RequestID     pgtype.Text        `json:"request_id"`
+	ErrorType     string             `json:"error_type"`
+	ErrorMessage  string             `json:"error_message"`
+	StackTrace    pgtype.Text        `json:"stack_trace"`
+	RequestPath   pgtype.Text        `json:"request_path"`
+	RequestMethod pgtype.Text        `json:"request_method"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type ErrorLogs202512 struct {
+	ID            pgtype.UUID        `json:"id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	RequestID     pgtype.Text        `json:"request_id"`
+	ErrorType     string             `json:"error_type"`
+	ErrorMessage  string             `json:"error_message"`
+	StackTrace    pgtype.Text        `json:"stack_trace"`
+	RequestPath   pgtype.Text        `json:"request_path"`
+	RequestMethod pgtype.Text        `json:"request_method"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type ErrorLogsDefault struct {
+	ID            pgtype.UUID        `json:"id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	RequestID     pgtype.Text        `json:"request_id"`
+	ErrorType     string             `json:"error_type"`
+	ErrorMessage  string             `json:"error_message"`
+	StackTrace    pgtype.Text        `json:"stack_trace"`
+	RequestPath   pgtype.Text        `json:"request_path"`
+	RequestMethod pgtype.Text        `json:"request_method"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
 
 type Order struct {
 	ID          pgtype.UUID        `json:"id"`

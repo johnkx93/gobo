@@ -7,18 +7,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
-	queries *db.Queries
+	queries      *db.Queries
+	auditService *audit.Service
 }
 
-func NewService(queries *db.Queries) *Service {
+func NewService(queries *db.Queries, auditService *audit.Service) *Service {
 	return &Service{
-		queries: queries,
+		queries:      queries,
+		auditService: auditService,
 	}
 }
 
@@ -61,6 +64,10 @@ func (s *Service) CreateUser(ctx context.Context, req CreateUserRequest) (*UserR
 		slog.Error("failed to create user", "error", err)
 		return nil, errors.Internal("failed to create user", err)
 	}
+
+	// Audit log the user creation
+	userID := uuid.UUID(user.ID.Bytes)
+	s.auditService.LogCreate(ctx, "users", userID, user)
 
 	return toUserResponse(&user), nil
 }
@@ -118,7 +125,7 @@ func (s *Service) UpdateUser(ctx context.Context, id string, req UpdateUserReque
 	}
 
 	// Check if user exists
-	_, err = s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	oldUser, err := s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
 	if err == pgx.ErrNoRows {
 		return nil, errors.NotFound("user not found")
 	} else if err != nil {
@@ -139,6 +146,9 @@ func (s *Service) UpdateUser(ctx context.Context, id string, req UpdateUserReque
 		return nil, errors.Internal("failed to update user", err)
 	}
 
+	// Audit log the user update
+	s.auditService.LogUpdate(ctx, "users", userID, oldUser, user)
+
 	return toUserResponse(&user), nil
 }
 
@@ -150,7 +160,7 @@ func (s *Service) DeleteUser(ctx context.Context, id string) error {
 	}
 
 	// Check if user exists
-	_, err = s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	user, err := s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
 	if err == pgx.ErrNoRows {
 		return errors.NotFound("user not found")
 	} else if err != nil {
@@ -163,6 +173,9 @@ func (s *Service) DeleteUser(ctx context.Context, id string) error {
 		slog.Error("failed to delete user", "id", id, "error", err)
 		return errors.Internal("failed to delete user", err)
 	}
+
+	// Audit log the user deletion
+	s.auditService.LogDelete(ctx, "users", userID, user)
 
 	return nil
 }

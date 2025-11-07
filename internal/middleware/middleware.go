@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/user/coc/internal/app/auth"
+	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/db"
 )
 
@@ -53,6 +55,12 @@ func Middleware(authService *auth.Service, queries *db.Queries) func(http.Handle
 			// Add user to context
 			ctx := context.WithValue(r.Context(), UserContextKey, &user)
 			ctx = context.WithValue(ctx, UserIDContextKey, claims.UserID)
+
+			// Add user ID to audit context
+			userID, err := uuid.Parse(claims.UserID)
+			if err == nil {
+				ctx = audit.WithUserID(ctx, userID)
+			}
 
 			// Call next handler with updated context
 			next.ServeHTTP(w, r.WithContext(ctx))

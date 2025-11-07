@@ -14,6 +14,7 @@ import (
 	"github.com/user/coc/internal/app/auth"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
+	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/config"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/middleware"
@@ -80,9 +81,10 @@ func main() {
 	}
 
 	// Initialize services
-	userService := user.NewService(queries)
-	orderService := order.NewService(queries)
-	authService := auth.NewService(queries, cfg.JWTSecret, bearerTokenDuration)
+	auditService := audit.NewService(queries)
+	userService := user.NewService(queries, auditService)
+	orderService := order.NewService(queries, auditService)
+	authService := auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
 
 	// Initialize handlers (pass shared validator instance)
 	userHandler := user.NewHandler(userService, validator)

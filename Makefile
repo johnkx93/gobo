@@ -17,6 +17,9 @@ docker-down: ## Stop Docker containers
 docker-logs: ## View Docker container logs
 	docker-compose logs -f
 
+migrate-status: ## Check database migration status
+	migrate -path db/schema -database "postgres://postgres:postgres@localhost:5432/appdb?sslmode=disable" version
+
 migrate-up: ## Run database migrations
 	migrate -path db/schema -database "postgres://postgres:postgres@localhost:5432/appdb?sslmode=disable" up
 

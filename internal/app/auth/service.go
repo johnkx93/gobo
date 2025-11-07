@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -15,13 +16,15 @@ import (
 
 type Service struct {
 	queries             *db.Queries
+	auditService        *audit.Service
 	jwtSecret           string
 	bearerTokenDuration time.Duration
 }
 
-func NewService(queries *db.Queries, jwtSecret string, bearerTokenDuration time.Duration) *Service {
+func NewService(queries *db.Queries, auditService *audit.Service, jwtSecret string, bearerTokenDuration time.Duration) *Service {
 	return &Service{
 		queries:             queries,
+		auditService:        auditService,
 		jwtSecret:           jwtSecret,
 		bearerTokenDuration: bearerTokenDuration,
 	}
@@ -155,6 +158,10 @@ func (s *Service) Register(ctx context.Context, email, username, password, first
 	if err != nil {
 		return nil, errors.Internal("failed to create user", err)
 	}
+
+	// Audit log the user registration
+	userID := uuid.UUID(user.ID.Bytes)
+	s.auditService.LogCreate(ctx, "users", userID, user)
 
 	return &user, nil
 }

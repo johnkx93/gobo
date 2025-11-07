@@ -8,17 +8,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/errors"
 )
 
 type Service struct {
-	queries *db.Queries
+	queries      *db.Queries
+	auditService *audit.Service
 }
 
-func NewService(queries *db.Queries) *Service {
+func NewService(queries *db.Queries, auditService *audit.Service) *Service {
 	return &Service{
-		queries: queries,
+		queries:      queries,
+		auditService: auditService,
 	}
 }
 
@@ -67,6 +70,10 @@ func (s *Service) CreateOrder(ctx context.Context, req CreateOrderRequest) (*Ord
 		slog.Error("failed to create order", "error", err)
 		return nil, errors.Internal("failed to create order", err)
 	}
+
+	// Audit log the order creation
+	orderID := uuid.UUID(order.ID.Bytes)
+	s.auditService.LogCreate(ctx, "orders", orderID, order)
 
 	return toOrderResponse(&order), nil
 }
@@ -157,7 +164,7 @@ func (s *Service) UpdateOrder(ctx context.Context, id string, req UpdateOrderReq
 	}
 
 	// Check if order exists
-	_, err = s.queries.GetOrderByID(ctx, pgtype.UUID{Bytes: orderID, Valid: true})
+	oldOrder, err := s.queries.GetOrderByID(ctx, pgtype.UUID{Bytes: orderID, Valid: true})
 	if err == pgx.ErrNoRows {
 		return nil, errors.NotFound("order not found")
 	} else if err != nil {
@@ -183,6 +190,9 @@ func (s *Service) UpdateOrder(ctx context.Context, id string, req UpdateOrderReq
 		return nil, errors.Internal("failed to update order", err)
 	}
 
+	// Audit log the order update
+	s.auditService.LogUpdate(ctx, "orders", orderID, oldOrder, order)
+
 	return toOrderResponse(&order), nil
 }
 
@@ -194,7 +204,7 @@ func (s *Service) DeleteOrder(ctx context.Context, id string) error {
 	}
 
 	// Check if order exists
-	_, err = s.queries.GetOrderByID(ctx, pgtype.UUID{Bytes: orderID, Valid: true})
+	order, err := s.queries.GetOrderByID(ctx, pgtype.UUID{Bytes: orderID, Valid: true})
 	if err == pgx.ErrNoRows {
 		return errors.NotFound("order not found")
 	} else if err != nil {
@@ -207,6 +217,9 @@ func (s *Service) DeleteOrder(ctx context.Context, id string) error {
 		slog.Error("failed to delete order", "id", id, "error", err)
 		return errors.Internal("failed to delete order", err)
 	}
+
+	// Audit log the order deletion
+	s.auditService.LogDelete(ctx, "orders", orderID, order)
 
 	return nil
 }
