@@ -11,13 +11,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/user/coc/internal/app/auth"
-	"github.com/user/coc/internal/app/order"
-	"github.com/user/coc/internal/app/user"
-	"github.com/user/coc/internal/config"
+	"github.com/user/coc/internal/auth"
 	"github.com/user/coc/internal/db"
-	"github.com/user/coc/internal/router"
-	"github.com/user/coc/internal/validation"
+	"github.com/user/coc/internal/order"
+	"github.com/user/coc/internal/user"
+	"github.com/user/coc/pkg/config"
+	"github.com/user/coc/pkg/router"
+	"github.com/user/coc/pkg/validation"
 )
 
 func main() {
@@ -58,7 +58,7 @@ func main() {
 	defer cancel()
 
 	// Initialize database connection pool
-	pool, err := db.NewPool(ctx, cfg.DatabaseURL)
+	pool, err := db.NewPool(ctx, cfg.DatabaseURL, cfg.DBMaxConnection)
 	if err != nil {
 		slog.Error("failed to create database pool", "error", err)
 		os.Exit(1)

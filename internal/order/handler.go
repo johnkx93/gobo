@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/user/coc/internal/response"
-	"github.com/user/coc/internal/validation"
+	"github.com/user/coc/pkg/response"
+	"github.com/user/coc/pkg/validation"
 )
 
 type Handler struct {

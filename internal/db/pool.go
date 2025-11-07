@@ -9,14 +9,14 @@ import (
 )
 
 // NewPool creates a new PostgreSQL connection pool
-func NewPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
+func NewPool(ctx context.Context, databaseURL string, dbMaxConnection int) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse database URL: %w", err)
 	}
 
 	// Configure pool settings
-	config.MaxConns = 25
+	config.MaxConns = int32(dbMaxConnection)
 	config.MinConns = 5
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
