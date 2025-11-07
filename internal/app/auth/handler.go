@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/user/coc/internal/db"
-	"github.com/user/coc/pkg/response"
-	"github.com/user/coc/pkg/validation"
+	"github.com/user/coc/internal/response"
+	"github.com/user/coc/internal/validation"
 )
 
 type Handler struct {

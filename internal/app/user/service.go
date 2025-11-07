@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/user/coc/internal/db"
-	"github.com/user/coc/pkg/errors"
+	"github.com/user/coc/internal/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/user/coc/pkg/errors"
+	"github.com/user/coc/internal/errors"
 )
 
 // JSONResponse represents a standard JSON response
