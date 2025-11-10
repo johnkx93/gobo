@@ -38,11 +38,6 @@ func (h *Handler) GetMenu(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("returning menu", "role", role, "root_items", len(menuItems))
-	for i, item := range menuItems {
-		slog.Info("root menu item", "index", i, "label", item.Label, "children_count", len(item.Children))
-	}
-
 	response.JSON(w, http.StatusOK, "menu retrieved successfully", map[string]interface{}{
 		"menu": menuItems,
 		"role": role,

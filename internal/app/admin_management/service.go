@@ -39,6 +39,11 @@ func (s *Service) CreateAdmin(ctx context.Context, req CreateAdminRequest) (*adm
 		return nil, errors.AlreadyExists("admin with this username already exists")
 	}
 
+	// Default role to 'moderator' when not provided in the request
+	if req.Role == "" {
+		req.Role = "moderator"
+	}
+
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {

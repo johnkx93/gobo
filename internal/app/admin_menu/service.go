@@ -2,7 +2,6 @@ package admin_menu
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/user/coc/internal/db"
@@ -26,8 +25,6 @@ func GetMenuForRole(ctx context.Context, queries *db.Queries, role string) ([]*M
 		return nil, err
 	}
 
-	slog.Info("fetched menu items", "count", len(dbMenuItems), "role", role)
-
 	// Build hierarchical menu structure
 	return buildMenuTree(dbMenuItems), nil
 }
@@ -37,8 +34,6 @@ func buildMenuTree(items []db.GetMenuItemsByRoleRow) []*MenuItem {
 	// Map to store menu items by ID for quick lookup
 	itemMap := make(map[uuid.UUID]*MenuItem)
 	var rootItems []*MenuItem
-
-	slog.Info("building menu tree", "total_items", len(items))
 
 	// First pass: create all menu items
 	for _, item := range items {
@@ -54,7 +49,6 @@ func buildMenuTree(items []db.GetMenuItemsByRoleRow) []*MenuItem {
 		}
 
 		itemMap[itemID] = menuItem
-		slog.Info("created menu item", "id", itemID.String(), "label", item.Label, "has_parent", item.ParentID.Valid)
 	}
 
 	// Second pass: build parent-child relationships
@@ -67,18 +61,13 @@ func buildMenuTree(items []db.GetMenuItemsByRoleRow) []*MenuItem {
 			parentID, _ := uuid.FromBytes(item.ParentID.Bytes[:])
 			if parent, exists := itemMap[parentID]; exists {
 				parent.Children = append(parent.Children, menuItem)
-				slog.Info("added child to parent", "child", item.Label, "parent_id", parentID.String())
-			} else {
-				slog.Warn("parent not found for child", "child", item.Label, "parent_id", parentID.String())
 			}
 		} else {
 			// This is a root item
 			rootItems = append(rootItems, menuItem)
-			slog.Info("added root item", "label", item.Label)
 		}
 	}
 
-	slog.Info("menu tree built", "root_items", len(rootItems))
 	return rootItems
 }
 

@@ -7,7 +7,8 @@ type CreateAdminRequest struct {
 	Password  string `json:"password" validate:"required,min=8"`
 	FirstName string `json:"first_name,omitempty" validate:"omitempty,max=100"`
 	LastName  string `json:"last_name,omitempty" validate:"omitempty,max=100"`
-	Role      string `json:"role" validate:"required,oneof=admin super_admin moderator"`
+	// Role is optional on request; if omitted the service will default to "moderator".
+	Role string `json:"role,omitempty" validate:"omitempty,oneof=admin super_admin moderator"`
 }
 
 // UpdateAdminRequest represents the request to update an admin

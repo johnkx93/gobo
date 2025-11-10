@@ -36,16 +36,16 @@ type AdminClaims struct {
 }
 
 // Login authenticates an admin and returns a JWT token
-func (s *AuthService) Login(ctx context.Context, email, password string) (string, *db.Admin, error) {
-	// Get admin by email
-	admin, err := s.queries.GetAdminByEmail(ctx, email)
+func (s *AuthService) Login(ctx context.Context, username, password string) (string, *db.Admin, error) {
+	// Get admin by username
+	admin, err := s.queries.GetAdminByUsername(ctx, username)
 	if err != nil {
-		return "", nil, errors.Unauthorized("invalid email or password")
+		return "", nil, errors.Unauthorized("invalid username or password")
 	}
 
 	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(password)); err != nil {
-		return "", nil, errors.Unauthorized("invalid email or password")
+		return "", nil, errors.Unauthorized("invalid username or password")
 	}
 
 	// Check if admin is active

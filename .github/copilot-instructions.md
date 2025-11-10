@@ -136,6 +136,27 @@ CREATE TRIGGER trigger_update_new_entity_updated_at
 - Always hash passwords using bcrypt before storing
 - JWT tokens should have appropriate expiration times
 
+### 12. Admin Handler Pattern (CRITICAL)
+- **ALWAYS** check admin role at the start of admin handler functions
+- Use `ctxkeys.GetAdminRole(r)` to retrieve the role from context
+- Return `401 Unauthorized` if role is not found or empty
+- Pattern to follow:
+```go
+func (h *Handler) SomeAdminAction(w http.ResponseWriter, r *http.Request) {
+    // REQUIRED: Check admin role first
+    role, ok := ctxkeys.GetAdminRole(r)
+    if !ok || role == "" {
+        response.Error(w, http.StatusUnauthorized, "admin role not found")
+        return
+    }
+    
+    // Continue with handler logic...
+}
+```
+- This prevents unauthorized access even if middleware is misconfigured
+- All handlers in `internal/app/admin_*` packages must follow this pattern
+- Use `ctxkeys.GetAdminID(r)` when you need the admin's UUID for audit logging
+
 ## Common Patterns
 
 ### Adding a New Entity
