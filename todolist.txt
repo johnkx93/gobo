@@ -6,6 +6,7 @@
 - testing
 - api implementation
 - never delete user, only active inactive
+- differentiate dev and prod
 
 1. Unit Tests        → Test individual components (audit service methods)
 2. Integration Tests → Test full flow (service → audit → database)
