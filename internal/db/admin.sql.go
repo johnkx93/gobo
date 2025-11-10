@@ -154,8 +154,8 @@ LIMIT $1 OFFSET $2
 `
 
 type ListAdminsParams struct {
-	Limit  int64 `json:"limit"`
-	Offset int64 `json:"offset"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
 func (q *Queries) ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error) {

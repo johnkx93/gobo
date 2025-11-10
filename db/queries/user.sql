@@ -33,6 +33,7 @@ SET
     username = COALESCE(sqlc.narg('username'), username),
     first_name = COALESCE(sqlc.narg('first_name'), first_name),
     last_name = COALESCE(sqlc.narg('last_name'), last_name),
+    default_address_id = COALESCE(sqlc.narg('default_address_id'), default_address_id),
     updated_at = CURRENT_TIMESTAMP
 WHERE id = sqlc.arg('id')
 RETURNING *;

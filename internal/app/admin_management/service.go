@@ -104,8 +104,8 @@ func (s *Service) GetAdmin(ctx context.Context, id string) (*admin_auth.AdminRes
 // ListAdmins retrieves all admins with pagination
 func (s *Service) ListAdmins(ctx context.Context, limit, offset int32) ([]*admin_auth.AdminResponse, error) {
 	admins, err := s.queries.ListAdmins(ctx, db.ListAdminsParams{
-		Limit:  int64(limit),
-		Offset: int64(offset),
+		Limit:  limit,
+		Offset: offset,
 	})
 	if err != nil {
 		return nil, errors.Internal("failed to list admins", err)

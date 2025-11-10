@@ -12,10 +12,14 @@ import (
 
 type Querier interface {
 	AssignPermissionToRole(ctx context.Context, arg AssignPermissionToRoleParams) error
+	ClearDefaultAddress(ctx context.Context, id pgtype.UUID) (User, error)
+	CountAddresses(ctx context.Context) (int64, error)
+	CountAddressesByUserID(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountAuditLogsByEntity(ctx context.Context, arg CountAuditLogsByEntityParams) (int64, error)
 	CountAuditLogsByUser(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountErrorLogsByDateRange(ctx context.Context, arg CountErrorLogsByDateRangeParams) (int64, error)
 	CountErrorLogsByType(ctx context.Context, errorType string) (int64, error)
+	CreateAddress(ctx context.Context, arg CreateAddressParams) (Address, error)
 	CreateAdmin(ctx context.Context, arg CreateAdminParams) (Admin, error)
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (AuditLog, error)
 	CreateErrorLog(ctx context.Context, arg CreateErrorLogParams) (ErrorLog, error)
@@ -23,11 +27,17 @@ type Querier interface {
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	CreatePermission(ctx context.Context, arg CreatePermissionParams) (Permission, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAddress(ctx context.Context, id pgtype.UUID) error
+	DeleteAddressForUser(ctx context.Context, arg DeleteAddressForUserParams) error
+	DeleteAddressesByUserID(ctx context.Context, userID pgtype.UUID) error
 	DeleteAdmin(ctx context.Context, id pgtype.UUID) error
 	DeleteMenuItem(ctx context.Context, id pgtype.UUID) error
 	DeleteOrder(ctx context.Context, id pgtype.UUID) error
 	DeletePermission(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
+	GetAddressByID(ctx context.Context, id pgtype.UUID) (Address, error)
+	GetAddressByIDAndUserID(ctx context.Context, arg GetAddressByIDAndUserIDParams) (Address, error)
+	GetAddressesByUserID(ctx context.Context, userID pgtype.UUID) ([]Address, error)
 	GetAdminByEmail(ctx context.Context, email string) (Admin, error)
 	GetAdminByID(ctx context.Context, id pgtype.UUID) (Admin, error)
 	GetAdminByUsername(ctx context.Context, username string) (Admin, error)
@@ -47,8 +57,10 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetUserWithDefaultAddress(ctx context.Context, id pgtype.UUID) (GetUserWithDefaultAddressRow, error)
 	HardDeleteAdmin(ctx context.Context, id pgtype.UUID) error
 	ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error)
+	ListAllAddresses(ctx context.Context, arg ListAllAddressesParams) ([]Address, error)
 	ListAuditLogsByDateRange(ctx context.Context, arg ListAuditLogsByDateRangeParams) ([]AuditLog, error)
 	ListAuditLogsByEntity(ctx context.Context, arg ListAuditLogsByEntityParams) ([]AuditLog, error)
 	ListAuditLogsByEntityAndDateRange(ctx context.Context, arg ListAuditLogsByEntityAndDateRangeParams) ([]AuditLog, error)
@@ -65,6 +77,10 @@ type Querier interface {
 	ListRecentErrors(ctx context.Context, arg ListRecentErrorsParams) ([]ErrorLog, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	RevokePermissionFromRole(ctx context.Context, arg RevokePermissionFromRoleParams) error
+	SetDefaultAddress(ctx context.Context, arg SetDefaultAddressParams) (User, error)
+	SetDefaultAddressForUser(ctx context.Context, arg SetDefaultAddressForUserParams) (User, error)
+	UpdateAddress(ctx context.Context, arg UpdateAddressParams) (Address, error)
+	UpdateAddressForUser(ctx context.Context, arg UpdateAddressForUserParams) (Address, error)
 	UpdateAdmin(ctx context.Context, arg UpdateAdminParams) (Admin, error)
 	UpdateMenuItem(ctx context.Context, arg UpdateMenuItemParams) (MenuItem, error)
 	UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error)

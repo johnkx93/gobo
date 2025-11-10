@@ -20,7 +20,7 @@ INSERT INTO users (
     last_name
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING id, email, username, password_hash, first_name, last_name, created_at, updated_at
+) RETURNING id, email, username, password_hash, first_name, last_name, created_at, updated_at, default_address_id
 `
 
 type CreateUserParams struct {
@@ -49,6 +49,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.LastName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DefaultAddressID,
 	)
 	return i, err
 }
@@ -64,7 +65,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at FROM users
+SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at, default_address_id FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -80,12 +81,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.LastName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DefaultAddressID,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at FROM users
+SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at, default_address_id FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -101,12 +103,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.LastName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DefaultAddressID,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at FROM users
+SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at, default_address_id FROM users
 WHERE username = $1 LIMIT 1
 `
 
@@ -122,19 +125,20 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.LastName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DefaultAddressID,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at FROM users
+SELECT id, email, username, password_hash, first_name, last_name, created_at, updated_at, default_address_id FROM users
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
 
 type ListUsersParams struct {
-	Limit  int64 `json:"limit"`
-	Offset int64 `json:"offset"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
@@ -155,6 +159,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.LastName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DefaultAddressID,
 		); err != nil {
 			return nil, err
 		}
@@ -173,17 +178,19 @@ SET
     username = COALESCE($2, username),
     first_name = COALESCE($3, first_name),
     last_name = COALESCE($4, last_name),
+    default_address_id = COALESCE($5, default_address_id),
     updated_at = CURRENT_TIMESTAMP
-WHERE id = $5
-RETURNING id, email, username, password_hash, first_name, last_name, created_at, updated_at
+WHERE id = $6
+RETURNING id, email, username, password_hash, first_name, last_name, created_at, updated_at, default_address_id
 `
 
 type UpdateUserParams struct {
-	Email     pgtype.Text `json:"email"`
-	Username  pgtype.Text `json:"username"`
-	FirstName pgtype.Text `json:"first_name"`
-	LastName  pgtype.Text `json:"last_name"`
-	ID        pgtype.UUID `json:"id"`
+	Email            pgtype.Text `json:"email"`
+	Username         pgtype.Text `json:"username"`
+	FirstName        pgtype.Text `json:"first_name"`
+	LastName         pgtype.Text `json:"last_name"`
+	DefaultAddressID pgtype.UUID `json:"default_address_id"`
+	ID               pgtype.UUID `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -192,6 +199,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Username,
 		arg.FirstName,
 		arg.LastName,
+		arg.DefaultAddressID,
 		arg.ID,
 	)
 	var i User
@@ -204,6 +212,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.LastName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DefaultAddressID,
 	)
 	return i, err
 }

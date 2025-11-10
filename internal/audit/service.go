@@ -140,8 +140,8 @@ func (s *Service) GetEntityHistory(ctx context.Context, entityType string, entit
 	logs, err := s.queries.ListAuditLogsByEntity(ctx, db.ListAuditLogsByEntityParams{
 		EntityType: entityType,
 		EntityID:   pgtype.UUID{Bytes: entityID, Valid: true},
-		Limit:      int64(limit),
-		Offset:     int64(offset),
+		Limit:      limit,
+		Offset:     offset,
 	})
 	if err != nil {
 		slog.Error("failed to get entity audit history", "error", err, "entity_type", entityType, "entity_id", entityID)
@@ -162,8 +162,8 @@ func (s *Service) GetUserAuditHistory(ctx context.Context, userID uuid.UUID, lim
 
 	logs, err := s.queries.ListAuditLogsByUser(ctx, db.ListAuditLogsByUserParams{
 		UserID: pgtype.UUID{Bytes: userID, Valid: true},
-		Limit:  int64(limit),
-		Offset: int64(offset),
+		Limit:  limit,
+		Offset: offset,
 	})
 	if err != nil {
 		slog.Error("failed to get user audit history", "error", err, "user_id", userID)

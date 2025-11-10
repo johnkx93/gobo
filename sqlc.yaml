@@ -3,7 +3,10 @@ sql:
   - engine: "postgresql"
     queries: "./db/queries"
     schema: 
-      - "./db/schema"
+      - "./db/schema/001_initial_schema.up.sql"
+      - "./db/schema/000002_create_addresses_table.up.sql"
+      - "./db/schema/000003_add_default_address_to_users.up.sql"
+      - "./db/schema/000004_add_address_permissions_and_menu.up.sql"
     gen:
       go:
         package: "db"
@@ -14,5 +17,3 @@ sql:
         emit_interface: true
         emit_exact_table_names: false
         emit_empty_slices: true
-    database:
-      uri: "postgres://postgres:postgres@localhost:5432/appdb?sslmode=disable"

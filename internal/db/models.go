@@ -54,6 +54,18 @@ func (ns NullAuditAction) Value() (driver.Value, error) {
 	return string(ns.AuditAction), nil
 }
 
+type Address struct {
+	ID          pgtype.UUID        `json:"id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	Address     string             `json:"address"`
+	Floor       string             `json:"floor"`
+	UnitNo      string             `json:"unit_no"`
+	BlockTower  pgtype.Text        `json:"block_tower"`
+	CompanyName pgtype.Text        `json:"company_name"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Admin struct {
 	ID           pgtype.UUID        `json:"id"`
 	Email        string             `json:"email"`
@@ -324,12 +336,13 @@ type RolePermission struct {
 }
 
 type User struct {
-	ID           pgtype.UUID        `json:"id"`
-	Email        string             `json:"email"`
-	Username     string             `json:"username"`
-	PasswordHash string             `json:"password_hash"`
-	FirstName    pgtype.Text        `json:"first_name"`
-	LastName     pgtype.Text        `json:"last_name"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ID               pgtype.UUID        `json:"id"`
+	Email            string             `json:"email"`
+	Username         string             `json:"username"`
+	PasswordHash     string             `json:"password_hash"`
+	FirstName        pgtype.Text        `json:"first_name"`
+	LastName         pgtype.Text        `json:"last_name"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	DefaultAddressID pgtype.UUID        `json:"default_address_id"`
 }

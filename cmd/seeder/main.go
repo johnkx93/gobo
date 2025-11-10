@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	defaultUsers  = 50
-	defaultOrders = 200
-	defaultAdmins = 5
+	defaultUsers     = 50
+	defaultOrders    = 200
+	defaultAdmins    = 5
+	defaultAddresses = 150 // ~3 addresses per user on average
 )
 
 func main() {
@@ -28,6 +29,7 @@ func main() {
 	numUsers := flag.Int("users", defaultUsers, "Number of users to generate")
 	numOrders := flag.Int("orders", defaultOrders, "Number of orders to generate")
 	numAdmins := flag.Int("admins", defaultAdmins, "Number of admins to generate")
+	numAddresses := flag.Int("addresses", defaultAddresses, "Number of addresses to generate")
 	clearData := flag.Bool("clear", false, "Clear existing data before seeding")
 	flag.Parse()
 
@@ -80,6 +82,14 @@ func main() {
 	}
 	fmt.Printf("✅ Created %d users\n", len(userIDs))
 
+	// Seed addresses
+	fmt.Printf("📍 Generating %d addresses...\n", *numAddresses)
+	addressCount, err := seedAddresses(ctx, queries, userIDs, *numAddresses)
+	if err != nil {
+		log.Fatalf("Failed to seed addresses: %v", err)
+	}
+	fmt.Printf("✅ Created %d addresses\n", addressCount)
+
 	// Seed orders
 	fmt.Printf("📦 Generating %d orders...\n", *numOrders)
 	orderCount, err := seedOrders(ctx, queries, userIDs, *numOrders)
@@ -95,6 +105,11 @@ func clearDatabase(ctx context.Context, pool *pgxpool.Pool) error {
 	// Delete orders first (due to foreign key constraint)
 	if _, err := pool.Exec(ctx, "DELETE FROM orders"); err != nil {
 		return fmt.Errorf("failed to delete orders: %w", err)
+	}
+
+	// Delete addresses (must be before users due to foreign key)
+	if _, err := pool.Exec(ctx, "DELETE FROM addresses"); err != nil {
+		return fmt.Errorf("failed to delete addresses: %w", err)
 	}
 
 	// Delete users
@@ -264,4 +279,100 @@ func seedOrders(ctx context.Context, queries *db.Queries, userIDs []pgtype.UUID,
 	}
 
 	return orderCount, nil
+}
+
+func seedAddresses(ctx context.Context, queries *db.Queries, userIDs []pgtype.UUID, count int) (int, error) {
+	if len(userIDs) == 0 {
+		return 0, fmt.Errorf("no users available to create addresses for")
+	}
+
+	addressCount := 0
+	userAddressMap := make(map[int][]pgtype.UUID) // Track addresses per user index
+
+	for i := 0; i < count; i++ {
+		// Random user
+		userIndex := gofakeit.Number(0, len(userIDs)-1)
+		userID := userIDs[userIndex]
+
+		// Generate address data
+		address := gofakeit.Street()
+		if len(address) > 50 {
+			address = address[:50]
+		}
+
+		floor := fmt.Sprintf("%d", gofakeit.Number(1, 30))
+		if len(floor) > 10 {
+			floor = floor[:10]
+		}
+
+		unitNo := fmt.Sprintf("%02d", gofakeit.Number(1, 99))
+		if len(unitNo) > 10 {
+			unitNo = unitNo[:10]
+		}
+
+		// Block/Tower (optional - 60% chance)
+		blockTower := pgtype.Text{Valid: false}
+		if gofakeit.Bool() && gofakeit.Number(1, 100) <= 60 {
+			block := fmt.Sprintf("Block %s", gofakeit.Letter())
+			if len(block) > 25 {
+				block = block[:25]
+			}
+			blockTower = pgtype.Text{String: block, Valid: true}
+		}
+
+		// Company name (optional - 30% chance for business address)
+		companyName := pgtype.Text{Valid: false}
+		if gofakeit.Number(1, 100) <= 30 {
+			company := gofakeit.Company()
+			if len(company) > 25 {
+				company = company[:25]
+			}
+			companyName = pgtype.Text{String: company, Valid: true}
+		}
+
+		newAddress, err := queries.CreateAddress(ctx, db.CreateAddressParams{
+			UserID:      userID,
+			Address:     address,
+			Floor:       floor,
+			UnitNo:      unitNo,
+			BlockTower:  blockTower,
+			CompanyName: companyName,
+		})
+		if err != nil {
+			return addressCount, fmt.Errorf("failed to create address %d: %w", i, err)
+		}
+
+		addressCount++
+
+		// Track addresses per user for setting default later
+		userAddressMap[userIndex] = append(userAddressMap[userIndex], newAddress.ID)
+
+		// Progress indicator
+		if (addressCount)%50 == 0 {
+			fmt.Printf("  ... %d/%d addresses created\n", addressCount, count)
+		}
+	}
+
+	// Set default address for users (randomly pick one of their addresses)
+	fmt.Println("  🎯 Setting default addresses for users...")
+	defaultCount := 0
+	for userIndex, addressIDs := range userAddressMap {
+		if len(addressIDs) > 0 {
+			userID := userIDs[userIndex]
+
+			// Pick random address as default
+			defaultAddressID := addressIDs[gofakeit.Number(0, len(addressIDs)-1)]
+
+			_, err := queries.SetDefaultAddress(ctx, db.SetDefaultAddressParams{
+				ID:               userID,
+				DefaultAddressID: defaultAddressID,
+			})
+			if err == nil {
+				defaultCount++
+			}
+		}
+	}
+	fmt.Printf("  ✅ Set %d default addresses\n", defaultCount)
+
+	return addressCount, nil
 }

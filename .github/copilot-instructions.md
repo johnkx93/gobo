@@ -157,6 +157,70 @@ func (h *Handler) SomeAdminAction(w http.ResponseWriter, r *http.Request) {
 - All handlers in `internal/app/admin_*` packages must follow this pattern
 - Use `ctxkeys.GetAdminID(r)` when you need the admin's UUID for audit logging
 
+### 13. Permissions and Menu System (CRITICAL)
+- **ALWAYS** add permissions and menu items when creating new tables/modules
+- Three tables exist for access control:
+  - `permissions` - Defines permission codes, names, and categories
+  - `role_permissions` - Maps roles to permissions (many-to-many)
+  - `menu_items` - Defines admin menu structure with permission requirements
+
+#### Adding New Module Permissions:
+```sql
+-- 1. Add permissions for the new module
+INSERT INTO permissions (code, name, description, category) VALUES
+    ('module.create', 'Create Module', 'Description', 'module'),
+    ('module.read', 'Read Module', 'Description', 'module'),
+    ('module.update', 'Update Module', 'Description', 'module'),
+    ('module.delete', 'Delete Module', 'Description', 'module');
+
+-- 2. Assign to super_admin role (gets ALL permissions)
+INSERT INTO role_permissions (role, permission_id)
+SELECT 'super_admin', id FROM permissions WHERE category = 'module';
+
+-- 3. Assign to admin role (usually read/update only)
+INSERT INTO role_permissions (role, permission_id)
+SELECT 'admin', id FROM permissions WHERE code IN ('module.read', 'module.update');
+
+-- 4. Assign to moderator role (usually read-only)
+INSERT INTO role_permissions (role, permission_id)
+SELECT 'moderator', id FROM permissions WHERE code = 'module.read';
+```
+
+#### Adding Menu Items:
+```sql
+-- 1. Add root menu item
+INSERT INTO menu_items (code, label, icon, order_index, permission_id) VALUES
+    ('module', 'Module Management', 'icon-name', 6, NULL);
+
+-- 2. Add child menu items
+INSERT INTO menu_items (parent_id, code, label, path, order_index, permission_id)
+SELECT 
+    (SELECT id FROM menu_items WHERE code = 'module'),
+    'module-list',
+    'Module List',
+    '/admin/modules',
+    1,
+    (SELECT id FROM permissions WHERE code = 'module.read')
+UNION ALL
+SELECT 
+    (SELECT id FROM menu_items WHERE code = 'module'),
+    'module-create',
+    'Create Module',
+    '/admin/modules/create',
+    2,
+    (SELECT id FROM permissions WHERE code = 'module.create');
+```
+
+### 14. Database Access (CRITICAL)
+- **ALWAYS** use Docker to access PostgreSQL - never direct psql
+- Pattern for database queries:
+```bash
+docker exec -it $(docker ps -q -f name=postgres) psql -U postgres -d appdb -c "YOUR_QUERY"
+```
+- This ensures consistency across development environments
+- Works on all platforms (macOS, Linux, Windows with WSL)
+- Prevents connection issues and environment variable conflicts
+
 ## Common Patterns
 
 ### Adding a New Entity
@@ -172,6 +236,11 @@ func (h *Handler) SomeAdminAction(w http.ResponseWriter, r *http.Request) {
 8. Create DTOs in `internal/app/entity/dto.go`
 9. Add routes in `internal/router/router.go`
 10. **Update seeder in `cmd/seeder/main.go`** to generate fake data for new entity
+11. **CRITICAL: Add permissions and menu items** (create new migration):
+    - Add permissions to `permissions` table (category = entity name)
+    - Assign permissions to roles in `role_permissions` (super_admin gets all)
+    - Add menu items to `menu_items` table with proper permission links
+    - Update `sqlc.yaml` to include the new migration file
 
 ### Updating Existing Entity
 1. Create new migration: `make migrate-create name=add_field_to_entity`
@@ -200,3 +269,5 @@ func (h *Handler) SomeAdminAction(w http.ResponseWriter, r *http.Request) {
 - Always sync seeder with migrations
 - Use Makefile commands consistently
 - Test thoroughly before suggesting production changes
+- **ALWAYS use Docker for PostgreSQL access** - never direct `psql`
+- **Every new table/module MUST have permissions and menu items** - this is mandatory for admin access control

@@ -12,11 +12,3 @@
 2. Integration Tests → Test full flow (service → audit → database)
 3. Manual Tests      → Test via HTTP endpoints
 4. Query Tests       → Verify audit data is queryable
-
-
-
-
-instruction
-- always add logging
-- always add new extension into init.sql
-- refer makefile for command
