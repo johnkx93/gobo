@@ -78,7 +78,7 @@ INSERT INTO admins (email, username, password_hash, first_name, last_name, role)
 VALUES (
     'admin@example.com',
     'superadmin',
-    '$2a$10$rZ0qV3wF8Xr0mE5yB.qI0.WxKGZGQXZJYH0wLZvMZN5Q3wYX0Q0Qq',
+    '$2a$10$WfaDveNY3z.lAO6pk9vdgunHpQEowC1C5jsCLMF6qCIkvrwmEXlMW',
     'Super',
     'Admin',
     'super_admin'

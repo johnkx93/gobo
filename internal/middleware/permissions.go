@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/user/coc/internal/app/admin_menu"
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/response"
 )
@@ -26,7 +27,7 @@ func (pm *PermissionMiddleware) RequirePermission(requiredPermission string) fun
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get admin role from context (set by AdminAuthMiddleware)
-			role, ok := r.Context().Value(AdminRoleContextKey).(string)
+			role, ok := ctxkeys.GetAdminRole(r)
 			if !ok || role == "" {
 				response.Error(w, http.StatusUnauthorized, "admin role not found in context")
 				return
@@ -57,7 +58,7 @@ func (pm *PermissionMiddleware) RequirePermission(requiredPermission string) fun
 func (pm *PermissionMiddleware) RequireAnyPermission(requiredPermissions ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role, ok := r.Context().Value(AdminRoleContextKey).(string)
+			role, ok := ctxkeys.GetAdminRole(r)
 			if !ok || role == "" {
 				response.Error(w, http.StatusUnauthorized, "admin role not found in context")
 				return
@@ -93,7 +94,7 @@ func (pm *PermissionMiddleware) RequireAnyPermission(requiredPermissions ...stri
 func (pm *PermissionMiddleware) RequireAllPermissions(requiredPermissions ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role, ok := r.Context().Value(AdminRoleContextKey).(string)
+			role, ok := ctxkeys.GetAdminRole(r)
 			if !ok || role == "" {
 				response.Error(w, http.StatusUnauthorized, "admin role not found in context")
 				return

@@ -4,14 +4,10 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/response"
 )
-
-// Context key type for admin context
-type contextKey string
-
-const AdminRoleContextKey contextKey = "admin_role"
 
 // Handler handles menu-related requests
 type Handler struct {
@@ -28,7 +24,7 @@ func NewHandler(queries *db.Queries) *Handler {
 // GetMenu returns the menu structure for the authenticated admin
 func (h *Handler) GetMenu(w http.ResponseWriter, r *http.Request) {
 	// Get admin role from context (set by AdminAuthMiddleware)
-	role, ok := r.Context().Value(AdminRoleContextKey).(string)
+	role, ok := ctxkeys.GetAdminRole(r)
 	if !ok || role == "" {
 		response.Error(w, http.StatusUnauthorized, "admin role not found")
 		return

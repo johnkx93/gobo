@@ -8,13 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/audit"
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/response"
-)
-
-const (
-	AdminContextKey     contextKey = "admin"
-	AdminIDContextKey   contextKey = "admin_id"
-	AdminRoleContextKey contextKey = "admin_role"
 )
 
 // AdminAuthMiddleware checks for valid admin JWT tokens
@@ -58,9 +53,9 @@ func AdminAuthMiddleware(authService *admin_auth.AuthService) func(http.Handler)
 			}
 
 			// Add admin to context
-			ctx := context.WithValue(r.Context(), AdminContextKey, &adminUser)
-			ctx = context.WithValue(ctx, AdminIDContextKey, claims.AdminID)
-			ctx = context.WithValue(ctx, AdminRoleContextKey, claims.Role)
+			ctx := context.WithValue(r.Context(), ctxkeys.AdminContextKey, &adminUser)
+			ctx = context.WithValue(ctx, ctxkeys.AdminIDContextKey, claims.AdminID)
+			ctx = context.WithValue(ctx, ctxkeys.AdminRoleContextKey, claims.Role)
 
 			// Add admin ID to audit context
 			adminID, err := uuid.Parse(claims.AdminID)
@@ -84,7 +79,7 @@ func RequireAdminRole(allowedRoles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get admin role from context
-			role, ok := r.Context().Value(AdminRoleContextKey).(string)
+			role, ok := r.Context().Value(ctxkeys.AdminRoleContextKey).(string)
 			if !ok || role == "" {
 				response.Error(w, http.StatusForbidden, "admin role not found in context")
 				return
@@ -96,8 +91,19 @@ func RequireAdminRole(allowedRoles ...string) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Admin has required role, proceed
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// GetAdminRole retrieves the admin role from the request context
+func GetAdminRole(r *http.Request) (string, bool) {
+	role, ok := r.Context().Value(ctxkeys.AdminRoleContextKey).(string)
+	return role, ok
+}
+
+// GetAdminID retrieves the admin ID from the request context
+func GetAdminID(r *http.Request) (string, bool) {
+	id, ok := r.Context().Value(ctxkeys.AdminIDContextKey).(string)
+	return id, ok
 }
