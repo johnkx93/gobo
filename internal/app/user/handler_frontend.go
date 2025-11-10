@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/user/coc/internal/middleware"
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/response"
 	"github.com/user/coc/internal/validation"
 )
@@ -23,12 +23,10 @@ func NewFrontendHandler(service *Service, validator *validation.Validator) *Fron
 	}
 }
 
-// GetMe handles GET /api/v1/users/me
-// Get current user's profile
+// GetMe returns the current user's profile
 func (h *FrontendHandler) GetMe(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from context (set by auth middleware)
-	userID, ok := r.Context().Value(middleware.UserIDContextKey).(string)
-	if !ok || userID == "" {
+	userID, ok := ctxkeys.GetUserID(r)
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
@@ -46,8 +44,8 @@ func (h *FrontendHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 // Update current user's profile
 func (h *FrontendHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
-	userID, ok := r.Context().Value(middleware.UserIDContextKey).(string)
-	if !ok || userID == "" {
+	userID, ok := ctxkeys.GetUserID(r)
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}

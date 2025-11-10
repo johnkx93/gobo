@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/user/coc/internal/app/address"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/app/user_auth"
@@ -15,6 +16,7 @@ import (
 func NewFrontendRouter(
 	userFrontendHandler *user.FrontendHandler,
 	orderFrontendHandler *order.FrontendHandler,
+	addressFrontendHandler *address.FrontendHandler,
 	authHandler *user_auth.Handler,
 	authMiddleware func(http.Handler) http.Handler,
 ) chi.Router {
@@ -45,6 +47,17 @@ func NewFrontendRouter(
 		r.Get("/{id}", orderFrontendHandler.GetOrder)    // Get own order by ID
 		r.Put("/{id}", orderFrontendHandler.UpdateOrder) // Update own order
 		// Note: Delete is not exposed on frontend (business decision)
+	})
+
+	// Frontend address routes (protected - users can manage their own addresses)
+	r.Route("/addresses", func(r chi.Router) {
+		r.Use(authMiddleware)
+		r.Post("/", addressFrontendHandler.CreateMyAddress)            // Create own address
+		r.Get("/", addressFrontendHandler.ListMyAddresses)             // List own addresses
+		r.Get("/{id}", addressFrontendHandler.GetMyAddress)            // Get own address by ID
+		r.Put("/{id}", addressFrontendHandler.UpdateMyAddress)         // Update own address
+		r.Delete("/{id}", addressFrontendHandler.DeleteMyAddress)      // Delete own address
+		r.Post("/default", addressFrontendHandler.SetMyDefaultAddress) // Set default address
 	})
 
 	return r

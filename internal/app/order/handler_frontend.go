@@ -6,7 +6,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/user/coc/internal/middleware"
+
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/response"
 	"github.com/user/coc/internal/validation"
 )
@@ -28,9 +29,8 @@ func NewFrontendHandler(service *Service, validator *validation.Validator) *Fron
 // CreateOrder handles POST /api/v1/orders
 // Create order for the current authenticated user
 func (h *FrontendHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from context (set by auth middleware)
-	userID, ok := r.Context().Value(middleware.UserIDContextKey).(string)
-	if !ok || userID == "" {
+	userID, ok := ctxkeys.GetUserID(r)
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
@@ -63,8 +63,8 @@ func (h *FrontendHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 // Get a specific order (only if it belongs to current user)
 func (h *FrontendHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
-	userID, ok := r.Context().Value(middleware.UserIDContextKey).(string)
-	if !ok || userID == "" {
+	userID, ok := ctxkeys.GetUserID(r)
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
@@ -94,8 +94,8 @@ func (h *FrontendHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 // List all orders belonging to the current authenticated user
 func (h *FrontendHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
-	userID, ok := r.Context().Value(middleware.UserIDContextKey).(string)
-	if !ok || userID == "" {
+	userID, ok := ctxkeys.GetUserID(r)
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
@@ -121,8 +121,8 @@ func (h *FrontendHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
 // Update an order (only if it belongs to current user)
 func (h *FrontendHandler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context
-	userID, ok := r.Context().Value(middleware.UserIDContextKey).(string)
-	if !ok || userID == "" {
+	userID, ok := ctxkeys.GetUserID(r)
+	if !ok {
 		response.Error(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}

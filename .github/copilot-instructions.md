@@ -231,12 +231,20 @@ docker exec -it $(docker ps -q -f name=postgres) psql -U postgres -d appdb -c "Y
 3. Add SQLC queries in `db/queries/entity.sql`
 4. Run migrations: `make migrate-up`
 5. Generate SQLC code: `make sqlc-generate`
-6. Create service in `internal/app/entity/service.go` with audit logging
-7. Create handlers in `internal/app/entity/handler.go`
-8. Create DTOs in `internal/app/entity/dto.go`
-9. Add routes in `internal/router/router.go`
-10. **Update seeder in `cmd/seeder/main.go`** to generate fake data for new entity
-11. **CRITICAL: Add permissions and menu items** (create new migration):
+6. **Create application structure in `internal/app/entity/`**:
+   - `dto.go` - Request/response DTOs and validation
+   - `service.go` - Business logic with audit logging
+   - **If module is used by both admin and users:**
+     - `handler_admin.go` - Admin-specific handlers
+     - `handler_frontend.go` - User-facing handlers (frontend)
+   - **If module is used by only one party:**
+     - `handler.go` - Single handler file
+7. **Add routes in `internal/router/`**:
+   - Admin routes → `admin.go` (protected by admin auth middleware)
+   - User routes → `frontend.go` (protected by user auth middleware)
+   - Register handlers and apply appropriate middleware
+8. **Update seeder in `cmd/seeder/main.go`** to generate fake data for new entity
+9. **CRITICAL: Add permissions and menu items** (create new migration):
     - Add permissions to `permissions` table (category = entity name)
     - Assign permissions to roles in `role_permissions` (super_admin gets all)
     - Add menu items to `menu_items` table with proper permission links
@@ -255,10 +263,19 @@ docker exec -it $(docker ps -q -f name=postgres) psql -U postgres -d appdb -c "Y
 ## File Organization
 - `cmd/` - Entry points (main.go, seeder)
 - `internal/app/` - Business logic by domain (user, order, auth)
+  - Each module folder contains:
+    - `dto.go` - Request/response structures with validation tags
+    - `service.go` - Business logic with audit logging
+    - `handler.go` - Single handler (if module is used by one party only)
+    - `handler_admin.go` - Admin handlers (if module is used by both admin and users)
+    - `handler_frontend.go` - User-facing handlers (if module is used by both admin and users)
 - `internal/audit/` - Audit and error logging services
 - `internal/db/` - SQLC generated code (don't edit manually)
 - `internal/middleware/` - HTTP middleware
 - `internal/router/` - Route definitions
+  - `router.go` - Main router setup
+  - `admin.go` - Admin routes (protected by admin auth middleware)
+  - `frontend.go` - User-facing routes (protected by user auth middleware)
 - `db/schema/` - Migration files
 - `db/queries/` - SQLC query definitions
 - `scripts/` - Shell scripts for operations

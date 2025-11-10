@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/db"
 )
 
@@ -28,7 +29,7 @@ func AdminOnly(queries *db.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get user from context (set by auth middleware)
-			user, ok := r.Context().Value(UserContextKey).(*db.User)
+			user, ok := r.Context().Value(ctxkeys.UserContextKey).(*db.User)
 			if !ok || user == nil {
 				respondUnauthorized(w, "user not authenticated")
 				return
@@ -94,13 +95,13 @@ func WithAdminContext(queries *db.Queries) func(http.Handler) http.Handler {
 			isAdmin := false
 
 			// Get user from context
-			if user, ok := r.Context().Value(UserContextKey).(*db.User); ok && user != nil {
+			if user, ok := r.Context().Value(ctxkeys.UserContextKey).(*db.User); ok && user != nil {
 				userEmail := strings.ToLower(strings.TrimSpace(user.Email))
 				isAdmin = adminEmails[userEmail]
 			}
 
 			// Add is_admin flag to context
-			ctx := context.WithValue(r.Context(), contextKey("is_admin"), isAdmin)
+			ctx := context.WithValue(r.Context(), ctxkeys.IsAdminContextKey, isAdmin)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

@@ -8,14 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/audit"
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/db"
-)
-
-type contextKey string
-
-const (
-	UserContextKey   contextKey = "user"
-	UserIDContextKey contextKey = "user_id"
 )
 
 // Middleware creates a middleware that validates JWT tokens and adds user to context
@@ -52,9 +46,9 @@ func Middleware(authService *user_auth.Service, queries *db.Queries) func(http.H
 				return
 			}
 
-			// Add user to context
-			ctx := context.WithValue(r.Context(), UserContextKey, &user)
-			ctx = context.WithValue(ctx, UserIDContextKey, claims.UserID)
+			// Add user to context using ctxkeys constants
+			ctx := context.WithValue(r.Context(), ctxkeys.UserContextKey, &user)
+			ctx = context.WithValue(ctx, ctxkeys.UserIDContextKey, claims.UserID)
 
 			// Add user ID to audit context
 			userID, err := uuid.Parse(claims.UserID)

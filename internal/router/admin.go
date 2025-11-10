@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/user/coc/internal/app/address"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
@@ -17,6 +18,7 @@ import (
 func NewAdminRouter(
 	userAdminHandler *user.AdminHandler,
 	orderAdminHandler *order.AdminHandler,
+	addressAdminHandler *address.AdminHandler,
 	adminAuthHandler *admin_auth.AuthHandler,
 	adminHandler *admin_management.Handler,
 	menuHandler *admin_menu.Handler,
@@ -89,6 +91,33 @@ func NewAdminRouter(
 
 		// Delete requires orders.delete permission
 		r.With(permissionMiddleware.RequirePermission("orders.delete")).Delete("/{id}", orderAdminHandler.DeleteOrder)
+	})
+
+	// Admin address management (protected)
+	r.Route("/addresses", func(r chi.Router) {
+		r.Use(adminAuthMiddleware) // Protect all admin address routes
+
+		// Create requires addresses.create permission
+		r.With(permissionMiddleware.RequirePermission("addresses.create")).Post("/", addressAdminHandler.CreateAddress)
+
+		// Read requires addresses.read permission
+		r.With(permissionMiddleware.RequirePermission("addresses.read")).Get("/", addressAdminHandler.ListAllAddresses)
+		r.With(permissionMiddleware.RequirePermission("addresses.read")).Get("/{id}", addressAdminHandler.GetAddress)
+
+		// Update requires addresses.update permission
+		r.With(permissionMiddleware.RequirePermission("addresses.update")).Put("/{id}", addressAdminHandler.UpdateAddress)
+
+		// Delete requires addresses.delete permission
+		r.With(permissionMiddleware.RequirePermission("addresses.delete")).Delete("/{id}", addressAdminHandler.DeleteAddress)
+	})
+
+	// Admin user address management (protected)
+	r.Route("/users/{user_id}/addresses", func(r chi.Router) {
+		r.Use(adminAuthMiddleware) // Protect all user address routes
+
+		// List user's addresses and set default require addresses.read permission
+		r.With(permissionMiddleware.RequirePermission("addresses.read")).Get("/", addressAdminHandler.ListAddressesByUser)
+		r.With(permissionMiddleware.RequirePermission("addresses.update")).Post("/default", addressAdminHandler.SetDefaultAddress)
 	})
 
 	return r

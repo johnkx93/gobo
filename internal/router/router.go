@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/user/coc/internal/app/address"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
@@ -21,6 +22,8 @@ func New(
 	userFrontendHandler *user.FrontendHandler,
 	orderAdminHandler *order.AdminHandler,
 	orderFrontendHandler *order.FrontendHandler,
+	addressAdminHandler *address.AdminHandler,
+	addressFrontendHandler *address.FrontendHandler,
 	userAuthHandler *user_auth.Handler,
 	adminAuthHandler *admin_auth.AuthHandler,
 	adminHandler *admin_management.Handler,
@@ -49,6 +52,7 @@ func New(
 	r.Mount("/api/v1", NewFrontendRouter(
 		userFrontendHandler,
 		orderFrontendHandler,
+		addressFrontendHandler,
 		userAuthHandler,
 		userAuthMiddleware,
 	))
@@ -57,6 +61,7 @@ func New(
 	r.Mount("/api/admin/v1", NewAdminRouter(
 		userAdminHandler,
 		orderAdminHandler,
+		addressAdminHandler,
 		adminAuthHandler,
 		adminHandler,
 		menuHandler,

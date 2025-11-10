@@ -14,6 +14,7 @@ const (
 	AdminContextKey     contextKey = "admin"
 	AdminIDContextKey   contextKey = "admin_id"
 	AdminRoleContextKey contextKey = "admin_role"
+	IsAdminContextKey   contextKey = "is_admin"
 )
 
 // GetAdminRole retrieves the admin role from the request context

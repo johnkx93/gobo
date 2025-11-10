@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/user/coc/internal/app/address"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
@@ -100,6 +101,11 @@ func main() {
 	orderAdminHandler := order.NewAdminHandler(orderService, validator)
 	orderFrontendHandler := order.NewFrontendHandler(orderService, validator)
 
+	// Address services (for frontend and admin)
+	addressService := address.NewService(queries, auditService)
+	addressAdminHandler := address.NewAdminHandler(addressService, validator)
+	addressFrontendHandler := address.NewFrontendHandler(addressService, validator)
+
 	// Admin authentication service and handler (for admin login)
 	adminAuthService := admin_auth.NewAuthService(queries, cfg.JWTSecret)
 	adminAuthHandler := admin_auth.NewAuthHandler(adminAuthService, validator)
@@ -127,6 +133,8 @@ func main() {
 		userFrontendHandler,
 		orderAdminHandler,
 		orderFrontendHandler,
+		addressAdminHandler,
+		addressFrontendHandler,
 		authHandler,
 		adminAuthHandler,
 		adminHandler,
