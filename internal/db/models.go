@@ -112,6 +112,36 @@ type AuditLogs202512 struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type AuditLogs202601 struct {
+	ID         pgtype.UUID        `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Action     AuditAction        `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	OldData    []byte             `json:"old_data"`
+	NewData    []byte             `json:"new_data"`
+	RequestID  pgtype.Text        `json:"request_id"`
+	IpAddress  pgtype.Text        `json:"ip_address"`
+	UserAgent  pgtype.Text        `json:"user_agent"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type AuditLogs202602 struct {
+	ID         pgtype.UUID        `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	Action     AuditAction        `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	OldData    []byte             `json:"old_data"`
+	NewData    []byte             `json:"new_data"`
+	RequestID  pgtype.Text        `json:"request_id"`
+	IpAddress  pgtype.Text        `json:"ip_address"`
+	UserAgent  pgtype.Text        `json:"user_agent"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
 type AuditLogsDefault struct {
 	ID         pgtype.UUID        `json:"id"`
 	UserID     pgtype.UUID        `json:"user_id"`
@@ -172,6 +202,36 @@ type ErrorLogs202512 struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
+type ErrorLogs202601 struct {
+	ID            pgtype.UUID        `json:"id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	RequestID     pgtype.Text        `json:"request_id"`
+	ErrorType     string             `json:"error_type"`
+	ErrorMessage  string             `json:"error_message"`
+	StackTrace    pgtype.Text        `json:"stack_trace"`
+	RequestPath   pgtype.Text        `json:"request_path"`
+	RequestMethod pgtype.Text        `json:"request_method"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type ErrorLogs202602 struct {
+	ID            pgtype.UUID        `json:"id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	RequestID     pgtype.Text        `json:"request_id"`
+	ErrorType     string             `json:"error_type"`
+	ErrorMessage  string             `json:"error_message"`
+	StackTrace    pgtype.Text        `json:"stack_trace"`
+	RequestPath   pgtype.Text        `json:"request_path"`
+	RequestMethod pgtype.Text        `json:"request_method"`
+	IpAddress     pgtype.Text        `json:"ip_address"`
+	UserAgent     pgtype.Text        `json:"user_agent"`
+	Metadata      []byte             `json:"metadata"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
 type ErrorLogsDefault struct {
 	ID            pgtype.UUID        `json:"id"`
 	UserID        pgtype.UUID        `json:"user_id"`
@@ -202,6 +262,39 @@ type MenuItem struct {
 }
 
 type Order struct {
+	ID          pgtype.UUID        `json:"id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	OrderNumber string             `json:"order_number"`
+	Status      string             `json:"status"`
+	TotalAmount pgtype.Numeric     `json:"total_amount"`
+	Notes       pgtype.Text        `json:"notes"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Orders2025 struct {
+	ID          pgtype.UUID        `json:"id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	OrderNumber string             `json:"order_number"`
+	Status      string             `json:"status"`
+	TotalAmount pgtype.Numeric     `json:"total_amount"`
+	Notes       pgtype.Text        `json:"notes"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Orders2026 struct {
+	ID          pgtype.UUID        `json:"id"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	OrderNumber string             `json:"order_number"`
+	Status      string             `json:"status"`
+	TotalAmount pgtype.Numeric     `json:"total_amount"`
+	Notes       pgtype.Text        `json:"notes"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type OrdersDefault struct {
 	ID          pgtype.UUID        `json:"id"`
 	UserID      pgtype.UUID        `json:"user_id"`
 	OrderNumber string             `json:"order_number"`
