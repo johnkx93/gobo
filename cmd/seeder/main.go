@@ -20,12 +20,14 @@ import (
 const (
 	defaultUsers  = 50
 	defaultOrders = 200
+	defaultAdmins = 5
 )
 
 func main() {
 	// Parse command line flags
 	numUsers := flag.Int("users", defaultUsers, "Number of users to generate")
 	numOrders := flag.Int("orders", defaultOrders, "Number of orders to generate")
+	numAdmins := flag.Int("admins", defaultAdmins, "Number of admins to generate")
 	clearData := flag.Bool("clear", false, "Clear existing data before seeding")
 	flag.Parse()
 
@@ -62,6 +64,14 @@ func main() {
 		fmt.Println("✅ Data cleared")
 	}
 
+	// Seed admins
+	fmt.Printf("👨‍💼 Generating %d admins...\n", *numAdmins)
+	adminCount, err := seedAdmins(ctx, queries, *numAdmins)
+	if err != nil {
+		log.Fatalf("Failed to seed admins: %v", err)
+	}
+	fmt.Printf("✅ Created %d admins\n", adminCount)
+
 	// Seed users
 	fmt.Printf("👥 Generating %d users...\n", *numUsers)
 	userIDs, err := seedUsers(ctx, queries, *numUsers)
@@ -92,7 +102,66 @@ func clearDatabase(ctx context.Context, pool *pgxpool.Pool) error {
 		return fmt.Errorf("failed to delete users: %w", err)
 	}
 
+	// Delete admins (but keep the default super admin from migration)
+	if _, err := pool.Exec(ctx, "DELETE FROM admins WHERE email != 'admin@example.com'"); err != nil {
+		return fmt.Errorf("failed to delete admins: %w", err)
+	}
+
 	return nil
+}
+
+func seedAdmins(ctx context.Context, queries *db.Queries, count int) (int, error) {
+	// Hash a default password for all test admins
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	adminCount := 0
+	roles := []string{"admin", "super_admin", "moderator"}
+
+	for i := 0; i < count; i++ {
+		person := gofakeit.Person()
+
+		// Generate unique email and username
+		email := fmt.Sprintf("admin%d@%s", i, gofakeit.DomainName())
+		username := fmt.Sprintf("admin_%s%d", gofakeit.Username(), i)
+
+		firstName := pgtype.Text{String: person.FirstName, Valid: true}
+		lastName := pgtype.Text{String: person.LastName, Valid: true}
+
+		// Assign role (first one is super_admin, rest are random)
+		role := roles[gofakeit.Number(0, len(roles)-1)]
+		if i == 0 {
+			role = "super_admin"
+		}
+
+		_, err := queries.CreateAdmin(ctx, db.CreateAdminParams{
+			Email:        email,
+			Username:     username,
+			PasswordHash: string(passwordHash),
+			FirstName:    firstName,
+			LastName:     lastName,
+			Role:         role,
+			IsActive:     true,
+		})
+		if err != nil {
+			// Skip duplicates and continue
+			if i < count-1 {
+				continue
+			}
+			return adminCount, fmt.Errorf("failed to create admin %d: %w", i, err)
+		}
+
+		adminCount++
+
+		// Progress indicator
+		if (adminCount)%5 == 0 {
+			fmt.Printf("  ... %d/%d admins created\n", adminCount, count)
+		}
+	}
+
+	return adminCount, nil
 }
 
 func seedUsers(ctx context.Context, queries *db.Queries, count int) ([]pgtype.UUID, error) {

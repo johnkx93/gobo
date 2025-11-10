@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/user/coc/internal/app/admin"
+	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/auth"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
@@ -82,20 +84,48 @@ func main() {
 
 	// Initialize services
 	auditService := audit.NewService(queries)
-	userService := user.NewService(queries, auditService)
-	orderService := order.NewService(queries, auditService)
-	authService := auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
 
-	// Initialize handlers (pass shared validator instance)
-	userHandler := user.NewHandler(userService, validator)
-	orderHandler := order.NewHandler(orderService, validator)
+	// User auth service (for frontend API)
+	authService := auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
 	authHandler := auth.NewHandler(authService, validator)
 
-	// Initialize auth middleware (moved to internal/middleware)
-	authMiddleware := middleware.Middleware(authService, queries)
+	// User services (for frontend and admin)
+	userService := user.NewService(queries, auditService)
+	userAdminHandler := user.NewAdminHandler(userService, validator)
+	userFrontendHandler := user.NewFrontendHandler(userService, validator)
 
-	// Setup router
-	r := router.New(userHandler, orderHandler, authHandler, authMiddleware)
+	// Order services (for frontend and admin)
+	orderService := order.NewService(queries, auditService)
+	orderAdminHandler := order.NewAdminHandler(orderService, validator)
+	orderFrontendHandler := order.NewFrontendHandler(orderService, validator)
+
+	// Admin authentication service and handler (for admin login)
+	adminAuthService := admin_auth.NewAuthService(queries, cfg.JWTSecret)
+	adminAuthHandler := admin_auth.NewAuthHandler(adminAuthService, validator)
+
+	// Admin CRUD service and handler (for managing admins)
+	adminService := admin.NewService(queries, auditService)
+	adminHandler := admin.NewHandler(adminService, validator)
+
+	// Initialize middleware
+	// User auth middleware (for frontend API)
+	userAuthMiddleware := middleware.Middleware(authService, queries)
+
+	// Admin auth middleware (for admin API)
+	adminAuthMiddleware := middleware.AdminAuthMiddleware(adminAuthService)
+
+	// Setup router with separate admin and frontend handlers
+	r := router.New(
+		userAdminHandler,
+		userFrontendHandler,
+		orderAdminHandler,
+		orderFrontendHandler,
+		authHandler,
+		adminAuthHandler,
+		adminHandler,
+		userAuthMiddleware,
+		adminAuthMiddleware,
+	)
 
 	// Create HTTP server
 	server := &http.Server{

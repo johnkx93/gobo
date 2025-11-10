@@ -80,12 +80,57 @@ if err := auditService.LogCreate(ctx, "table_name", result.ID, result); err != n
 - For production migrations, remind about backup: `make migrate-up-prod` includes automatic backup
 - Never force migrations in production without understanding the issue
 
-### 9. Testing
+### 9. Timestamp Columns (CRITICAL)
+- **ALL tables** (except audit_logs and error_logs) MUST have:
+  - `created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL`
+  - `updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL`
+- **Audit and error tables** only need:
+  - `created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL`
+- **Auto-update pattern**: Use PostgreSQL triggers to automatically update `updated_at`
+
+#### Standard Trigger Pattern for `updated_at`:
+```sql
+-- Create reusable trigger function (do this once in a migration)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply trigger to each table (in the table's migration)
+CREATE TRIGGER trigger_update_TABLENAME_updated_at
+    BEFORE UPDATE ON TABLENAME
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+```
+
+**Note:** The `update_updated_at_column()` function already exists in the database (created in migration 008). For new tables, you only need to create the trigger, not the function.
+
+#### Example for New Tables:
+```sql
+-- Create table with timestamps
+CREATE TABLE new_entity (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Add trigger (the function already exists, just reference it)
+CREATE TRIGGER trigger_update_new_entity_updated_at
+    BEFORE UPDATE ON new_entity
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+```
+
+### 10. Testing
 - Write tests for new services and handlers
 - Run tests before committing: `make test`
 - For coverage reports: `make test-coverage`
 
-### 10. Security Best Practices
+### 11. Security Best Practices
 - Audit service automatically filters sensitive fields (password_hash, token, secret, etc.)
 - Never log passwords or tokens in plain text
 - Always hash passwords using bcrypt before storing
@@ -95,7 +140,9 @@ if err := auditService.LogCreate(ctx, "table_name", result.ID, result); err != n
 
 ### Adding a New Entity
 1. Create migration files: `make migrate-create name=create_entity_table`
-2. Write SQL schema in `db/schema/XXX_create_entity_table.up.sql`
+2. Write SQL schema in `db/schema/XXX_create_entity_table.up.sql`:
+   - Include `created_at` and `updated_at` columns
+   - Add trigger for auto-updating `updated_at`
 3. Add SQLC queries in `db/queries/entity.sql`
 4. Run migrations: `make migrate-up`
 5. Generate SQLC code: `make sqlc-generate`

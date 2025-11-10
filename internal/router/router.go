@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/user/coc/internal/app/admin"
+	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/auth"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
@@ -12,7 +14,18 @@ import (
 )
 
 // New creates a new HTTP router with all routes configured
-func New(userHandler *user.Handler, orderHandler *order.Handler, authHandler *auth.Handler, authMiddleware func(http.Handler) http.Handler) http.Handler {
+// This router mounts both admin and frontend API routers
+func New(
+	userAdminHandler *user.AdminHandler,
+	userFrontendHandler *user.FrontendHandler,
+	orderAdminHandler *order.AdminHandler,
+	orderFrontendHandler *order.FrontendHandler,
+	userAuthHandler *auth.Handler,
+	adminAuthHandler *admin_auth.AuthHandler,
+	adminHandler *admin.Handler,
+	userAuthMiddleware func(http.Handler) http.Handler,
+	adminAuthMiddleware func(http.Handler) http.Handler,
+) http.Handler {
 	r := chi.NewRouter()
 
 	// Global middleware
@@ -29,36 +42,22 @@ func New(userHandler *user.Handler, orderHandler *order.Handler, authHandler *au
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// API routes
-	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(middleware.ContentType)
+	// Mount frontend API router (customer-facing)
+	r.Mount("/api/v1", NewFrontendRouter(
+		userFrontendHandler,
+		orderFrontendHandler,
+		userAuthHandler,
+		userAuthMiddleware,
+	))
 
-		// Auth routes (public)
-		r.Route("/auth", func(r chi.Router) {
-			r.Post("/login", authHandler.Login)
-			r.Post("/register", authHandler.Register)
-		})
-
-		// User routes (protected)
-		r.Route("/users", func(r chi.Router) {
-			r.Use(authMiddleware) // Protect all user routes
-			r.Post("/", userHandler.CreateUser)
-			r.Get("/", userHandler.ListUsers)
-			r.Get("/{id}", userHandler.GetUser)
-			r.Put("/{id}", userHandler.UpdateUser)
-			r.Delete("/{id}", userHandler.DeleteUser)
-		})
-
-		// Order routes (protected)
-		r.Route("/orders", func(r chi.Router) {
-			r.Use(authMiddleware) // Protect all order routes
-			r.Post("/", orderHandler.CreateOrder)
-			r.Get("/", orderHandler.ListOrders)
-			r.Get("/{id}", orderHandler.GetOrder)
-			r.Put("/{id}", orderHandler.UpdateOrder)
-			r.Delete("/{id}", orderHandler.DeleteOrder)
-		})
-	})
+	// Mount admin API router (admin panel)
+	r.Mount("/api/admin/v1", NewAdminRouter(
+		userAdminHandler,
+		orderAdminHandler,
+		adminAuthHandler,
+		adminHandler,
+		adminAuthMiddleware,
+	))
 
 	return r
 }

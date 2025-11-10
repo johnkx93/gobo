@@ -54,6 +54,19 @@ func (ns NullAuditAction) Value() (driver.Value, error) {
 	return string(ns.AuditAction), nil
 }
 
+type Admin struct {
+	ID           pgtype.UUID        `json:"id"`
+	Email        string             `json:"email"`
+	Username     string             `json:"username"`
+	PasswordHash string             `json:"password_hash"`
+	FirstName    pgtype.Text        `json:"first_name"`
+	LastName     pgtype.Text        `json:"last_name"`
+	Role         string             `json:"role"`
+	IsActive     bool               `json:"is_active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
 type AuditLog struct {
 	ID         pgtype.UUID        `json:"id"`
 	UserID     pgtype.UUID        `json:"user_id"`
