@@ -2,6 +2,7 @@ package admin_management
 
 import (
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -27,6 +28,8 @@ func NewService(queries *db.Queries, auditService *audit.Service) *Service {
 
 // CreateAdmin creates a new admin (only super_admin should be able to do this)
 func (s *Service) CreateAdmin(ctx context.Context, req CreateAdminRequest) (*admin_auth.AdminResponse, error) {
+	// normalize email: trim spaces and convert to lowercase
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
 	// Check if admin with email already exists
 	_, err := s.queries.GetAdminByEmail(ctx, req.Email)
 	if err == nil {
@@ -60,11 +63,11 @@ func (s *Service) CreateAdmin(ctx context.Context, req CreateAdminRequest) (*adm
 	}
 
 	if req.FirstName != "" {
-		params.FirstName = pgtype.Text{String: req.FirstName, Valid: true}
+		params.FirstName = pgtype.Text{String: strings.TrimSpace(req.FirstName), Valid: true}
 	}
 
 	if req.LastName != "" {
-		params.LastName = pgtype.Text{String: req.LastName, Valid: true}
+		params.LastName = pgtype.Text{String: strings.TrimSpace(req.LastName), Valid: true}
 	}
 
 	admin, err := s.queries.CreateAdmin(ctx, params)
@@ -147,6 +150,8 @@ func (s *Service) UpdateAdmin(ctx context.Context, id string, req UpdateAdminReq
 
 	// Update email if provided
 	if req.Email != "" {
+		// normalize email before updating
+		req.Email = strings.ToLower(strings.TrimSpace(req.Email))
 		params.Email = req.Email
 	}
 
@@ -166,12 +171,12 @@ func (s *Service) UpdateAdmin(ctx context.Context, id string, req UpdateAdminReq
 
 	// Update first name
 	if req.FirstName != "" {
-		params.FirstName = pgtype.Text{String: req.FirstName, Valid: true}
+		params.FirstName = pgtype.Text{String: strings.TrimSpace(req.FirstName), Valid: true}
 	}
 
 	// Update last name
 	if req.LastName != "" {
-		params.LastName = pgtype.Text{String: req.LastName, Valid: true}
+		params.LastName = pgtype.Text{String: strings.TrimSpace(req.LastName), Valid: true}
 	}
 
 	// Update role if provided

@@ -5,8 +5,8 @@ type CreateAdminRequest struct {
 	Email     string `json:"email" validate:"required,email"`
 	Username  string `json:"username" validate:"required,min=3,max=50"`
 	Password  string `json:"password" validate:"required,min=8"`
-	FirstName string `json:"first_name,omitempty" validate:"omitempty,max=100"`
-	LastName  string `json:"last_name,omitempty" validate:"omitempty,max=100"`
+	FirstName string `json:"first_name" validate:"required,max=100"`
+	LastName  string `json:"last_name" validate:"required,max=100"`
 	// Role is optional on request; if omitted the service will default to "moderator".
 	Role string `json:"role,omitempty" validate:"omitempty,oneof=admin super_admin moderator"`
 }
