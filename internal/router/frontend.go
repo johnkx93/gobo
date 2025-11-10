@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/user/coc/internal/app/auth"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
+	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/middleware"
 )
 
@@ -15,7 +15,7 @@ import (
 func NewFrontendRouter(
 	userFrontendHandler *user.FrontendHandler,
 	orderFrontendHandler *order.FrontendHandler,
-	authHandler *auth.Handler,
+	authHandler *user_auth.Handler,
 	authMiddleware func(http.Handler) http.Handler,
 ) chi.Router {
 	r := chi.NewRouter()

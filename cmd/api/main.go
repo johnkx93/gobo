@@ -11,12 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
-	"github.com/user/coc/internal/app/auth"
-	"github.com/user/coc/internal/app/menu"
+	"github.com/user/coc/internal/app/admin_management"
+	"github.com/user/coc/internal/app/admin_menu"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
+	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/config"
 	"github.com/user/coc/internal/db"
@@ -87,8 +87,8 @@ func main() {
 	auditService := audit.NewService(queries)
 
 	// User auth service (for frontend API)
-	authService := auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
-	authHandler := auth.NewHandler(authService, validator)
+	authService := user_auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
+	authHandler := user_auth.NewHandler(authService, validator)
 
 	// User services (for frontend and admin)
 	userService := user.NewService(queries, auditService)
@@ -105,11 +105,11 @@ func main() {
 	adminAuthHandler := admin_auth.NewAuthHandler(adminAuthService, validator)
 
 	// Admin CRUD service and handler (for managing admins)
-	adminService := admin.NewService(queries, auditService)
-	adminHandler := admin.NewHandler(adminService, validator)
+	adminService := admin_management.NewService(queries, auditService)
+	adminHandler := admin_management.NewHandler(adminService, validator)
 
 	// Menu handler (for serving admin menu)
-	menuHandler := menu.NewHandler(queries)
+	menuHandler := admin_menu.NewHandler(queries)
 
 	// Initialize middleware
 	// User auth middleware (for frontend API)

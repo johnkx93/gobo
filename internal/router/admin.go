@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
-	"github.com/user/coc/internal/app/menu"
+	"github.com/user/coc/internal/app/admin_management"
+	"github.com/user/coc/internal/app/admin_menu"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/middleware"
@@ -18,8 +18,8 @@ func NewAdminRouter(
 	userAdminHandler *user.AdminHandler,
 	orderAdminHandler *order.AdminHandler,
 	adminAuthHandler *admin_auth.AuthHandler,
-	adminHandler *admin.Handler,
-	menuHandler *menu.Handler,
+	adminHandler *admin_management.Handler,
+	menuHandler *admin_menu.Handler,
 	adminAuthMiddleware func(http.Handler) http.Handler,
 	permissionMiddleware *middleware.PermissionMiddleware,
 ) chi.Router {

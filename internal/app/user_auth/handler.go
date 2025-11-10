@@ -1,4 +1,4 @@
-package auth
+package user_auth
 
 import (
 	"encoding/json"

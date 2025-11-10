@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
-	"github.com/user/coc/internal/app/auth"
-	"github.com/user/coc/internal/app/menu"
+	"github.com/user/coc/internal/app/admin_management"
+	"github.com/user/coc/internal/app/admin_menu"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
+	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/middleware"
 )
 
@@ -21,10 +21,10 @@ func New(
 	userFrontendHandler *user.FrontendHandler,
 	orderAdminHandler *order.AdminHandler,
 	orderFrontendHandler *order.FrontendHandler,
-	userAuthHandler *auth.Handler,
+	userAuthHandler *user_auth.Handler,
 	adminAuthHandler *admin_auth.AuthHandler,
-	adminHandler *admin.Handler,
-	menuHandler *menu.Handler,
+	adminHandler *admin_management.Handler,
+	menuHandler *admin_menu.Handler,
 	userAuthMiddleware func(http.Handler) http.Handler,
 	adminAuthMiddleware func(http.Handler) http.Handler,
 	permissionMiddleware *middleware.PermissionMiddleware,

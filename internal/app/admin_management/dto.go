@@ -1,4 +1,4 @@
-package admin
+package admin_management
 
 // CreateAdminRequest represents the request to create a new admin
 type CreateAdminRequest struct {

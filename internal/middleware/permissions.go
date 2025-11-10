@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/user/coc/internal/app/menu"
+	"github.com/user/coc/internal/app/admin_menu"
 	"github.com/user/coc/internal/db"
 	"github.com/user/coc/internal/response"
 )
@@ -33,7 +33,7 @@ func (pm *PermissionMiddleware) RequirePermission(requiredPermission string) fun
 			}
 
 			// Get permissions for this role from database
-			permissions, err := menu.GetRolePermissions(r.Context(), pm.queries, role)
+			permissions, err := admin_menu.GetRolePermissions(r.Context(), pm.queries, role)
 			if err != nil {
 				slog.Error("failed to get role permissions", "error", err, "role", role)
 				response.Error(w, http.StatusInternalServerError, "failed to check permissions")
@@ -63,7 +63,7 @@ func (pm *PermissionMiddleware) RequireAnyPermission(requiredPermissions ...stri
 				return
 			}
 
-			permissions, err := menu.GetRolePermissions(r.Context(), pm.queries, role)
+			permissions, err := admin_menu.GetRolePermissions(r.Context(), pm.queries, role)
 			if err != nil {
 				slog.Error("failed to get role permissions", "error", err, "role", role)
 				response.Error(w, http.StatusInternalServerError, "failed to check permissions")
@@ -99,7 +99,7 @@ func (pm *PermissionMiddleware) RequireAllPermissions(requiredPermissions ...str
 				return
 			}
 
-			permissions, err := menu.GetRolePermissions(r.Context(), pm.queries, role)
+			permissions, err := admin_menu.GetRolePermissions(r.Context(), pm.queries, role)
 			if err != nil {
 				slog.Error("failed to get role permissions", "error", err, "role", role)
 				response.Error(w, http.StatusInternalServerError, "failed to check permissions")
