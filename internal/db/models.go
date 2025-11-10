@@ -187,6 +187,20 @@ type ErrorLogsDefault struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
+type MenuItem struct {
+	ID           pgtype.UUID        `json:"id"`
+	ParentID     pgtype.UUID        `json:"parent_id"`
+	Code         string             `json:"code"`
+	Label        string             `json:"label"`
+	Icon         pgtype.Text        `json:"icon"`
+	Path         pgtype.Text        `json:"path"`
+	PermissionID pgtype.UUID        `json:"permission_id"`
+	OrderIndex   int32              `json:"order_index"`
+	IsActive     bool               `json:"is_active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Order struct {
 	ID          pgtype.UUID        `json:"id"`
 	UserID      pgtype.UUID        `json:"user_id"`
@@ -196,6 +210,24 @@ type Order struct {
 	Notes       pgtype.Text        `json:"notes"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Permission struct {
+	ID          pgtype.UUID        `json:"id"`
+	Code        string             `json:"code"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	Category    string             `json:"category"`
+	IsActive    bool               `json:"is_active"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type RolePermission struct {
+	ID           pgtype.UUID        `json:"id"`
+	Role         string             `json:"role"`
+	PermissionID pgtype.UUID        `json:"permission_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {

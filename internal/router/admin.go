@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
+	"github.com/user/coc/internal/app/menu"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/middleware"
@@ -18,7 +19,9 @@ func NewAdminRouter(
 	orderAdminHandler *order.AdminHandler,
 	adminAuthHandler *admin_auth.AuthHandler,
 	adminHandler *admin.Handler,
+	menuHandler *menu.Handler,
 	adminAuthMiddleware func(http.Handler) http.Handler,
+	permissionMiddleware *middleware.PermissionMiddleware,
 ) chi.Router {
 	r := chi.NewRouter()
 
@@ -32,19 +35,37 @@ func NewAdminRouter(
 		// r.Post("/register", adminAuthHandler.Register)
 	})
 
+	// Protected routes that require authentication
+	r.Group(func(r chi.Router) {
+		r.Use(adminAuthMiddleware)
+
+		// Get admin menu based on role
+		r.Get("/menu", menuHandler.GetMenu)
+	})
+
 	// Admin user management (protected)
 	r.Route("/users", func(r chi.Router) {
 		r.Use(adminAuthMiddleware) // Protect all admin user routes
-		r.Post("/", userAdminHandler.CreateUser)
-		r.Get("/", userAdminHandler.ListUsers)
-		r.Get("/{id}", userAdminHandler.GetUser)
-		r.Put("/{id}", userAdminHandler.UpdateUser)
-		r.Delete("/{id}", userAdminHandler.DeleteUser)
+
+		// Create requires users.create permission
+		r.With(permissionMiddleware.RequirePermission("users.create")).Post("/", userAdminHandler.CreateUser)
+
+		// Read requires users.read permission
+		r.With(permissionMiddleware.RequirePermission("users.read")).Get("/", userAdminHandler.ListUsers)
+		r.With(permissionMiddleware.RequirePermission("users.read")).Get("/{id}", userAdminHandler.GetUser)
+
+		// Update requires users.update permission
+		r.With(permissionMiddleware.RequirePermission("users.update")).Put("/{id}", userAdminHandler.UpdateUser)
+
+		// Delete requires users.delete permission
+		r.With(permissionMiddleware.RequirePermission("users.delete")).Delete("/{id}", userAdminHandler.DeleteUser)
 	})
 
 	// Admin management (protected) - only super_admin should access these
 	r.Route("/admins", func(r chi.Router) {
-		r.Use(adminAuthMiddleware) // Protect all admin management routes
+		r.Use(adminAuthMiddleware)                                     // Protect all admin management routes
+		r.Use(permissionMiddleware.RequirePermission("admins.manage")) // Require admins.manage permission
+
 		r.Post("/", adminHandler.CreateAdmin)
 		r.Get("/", adminHandler.ListAdmins)
 		r.Get("/{id}", adminHandler.GetAdmin)
@@ -55,11 +76,19 @@ func NewAdminRouter(
 	// Admin order management (protected)
 	r.Route("/orders", func(r chi.Router) {
 		r.Use(adminAuthMiddleware) // Protect all admin order routes
-		r.Post("/", orderAdminHandler.CreateOrder)
-		r.Get("/", orderAdminHandler.ListOrders)
-		r.Get("/{id}", orderAdminHandler.GetOrder)
-		r.Put("/{id}", orderAdminHandler.UpdateOrder)
-		r.Delete("/{id}", orderAdminHandler.DeleteOrder)
+
+		// Create requires orders.create permission
+		r.With(permissionMiddleware.RequirePermission("orders.create")).Post("/", orderAdminHandler.CreateOrder)
+
+		// Read requires orders.read permission
+		r.With(permissionMiddleware.RequirePermission("orders.read")).Get("/", orderAdminHandler.ListOrders)
+		r.With(permissionMiddleware.RequirePermission("orders.read")).Get("/{id}", orderAdminHandler.GetOrder)
+
+		// Update requires orders.update permission
+		r.With(permissionMiddleware.RequirePermission("orders.update")).Put("/{id}", orderAdminHandler.UpdateOrder)
+
+		// Delete requires orders.delete permission
+		r.With(permissionMiddleware.RequirePermission("orders.delete")).Delete("/{id}", orderAdminHandler.DeleteOrder)
 	})
 
 	return r

@@ -14,6 +14,7 @@ import (
 	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/auth"
+	"github.com/user/coc/internal/app/menu"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/audit"
@@ -107,12 +108,18 @@ func main() {
 	adminService := admin.NewService(queries, auditService)
 	adminHandler := admin.NewHandler(adminService, validator)
 
+	// Menu handler (for serving admin menu)
+	menuHandler := menu.NewHandler(queries)
+
 	// Initialize middleware
 	// User auth middleware (for frontend API)
 	userAuthMiddleware := middleware.Middleware(authService, queries)
 
 	// Admin auth middleware (for admin API)
 	adminAuthMiddleware := middleware.AdminAuthMiddleware(adminAuthService)
+
+	// Permission middleware (for granular access control)
+	permissionMiddleware := middleware.NewPermissionMiddleware(queries)
 
 	// Setup router with separate admin and frontend handlers
 	r := router.New(
@@ -123,8 +130,10 @@ func main() {
 		authHandler,
 		adminAuthHandler,
 		adminHandler,
+		menuHandler,
 		userAuthMiddleware,
 		adminAuthMiddleware,
+		permissionMiddleware,
 	)
 
 	// Create HTTP server

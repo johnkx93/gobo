@@ -100,8 +100,8 @@ func (s *Service) ListUsers(ctx context.Context, limit, offset int32) ([]*UserRe
 	}
 
 	users, err := s.queries.ListUsers(ctx, db.ListUsersParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int64(limit),
+		Offset: int64(offset),
 	})
 	if err != nil {
 		slog.Error("failed to list users", "error", err)

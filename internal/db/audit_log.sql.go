@@ -139,8 +139,8 @@ LIMIT $3 OFFSET $4
 type ListAuditLogsByDateRangeParams struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
-	Limit       int32              `json:"limit"`
-	Offset      int32              `json:"offset"`
+	Limit       int64              `json:"limit"`
+	Offset      int64              `json:"offset"`
 }
 
 func (q *Queries) ListAuditLogsByDateRange(ctx context.Context, arg ListAuditLogsByDateRangeParams) ([]AuditLog, error) {
@@ -191,8 +191,8 @@ LIMIT $3 OFFSET $4
 type ListAuditLogsByEntityParams struct {
 	EntityType string      `json:"entity_type"`
 	EntityID   pgtype.UUID `json:"entity_id"`
-	Limit      int32       `json:"limit"`
-	Offset     int32       `json:"offset"`
+	Limit      int64       `json:"limit"`
+	Offset     int64       `json:"offset"`
 }
 
 func (q *Queries) ListAuditLogsByEntity(ctx context.Context, arg ListAuditLogsByEntityParams) ([]AuditLog, error) {
@@ -248,8 +248,8 @@ type ListAuditLogsByEntityAndDateRangeParams struct {
 	EntityID    pgtype.UUID        `json:"entity_id"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
-	Limit       int32              `json:"limit"`
-	Offset      int32              `json:"offset"`
+	Limit       int64              `json:"limit"`
+	Offset      int64              `json:"offset"`
 }
 
 func (q *Queries) ListAuditLogsByEntityAndDateRange(ctx context.Context, arg ListAuditLogsByEntityAndDateRangeParams) ([]AuditLog, error) {
@@ -301,8 +301,8 @@ LIMIT $2 OFFSET $3
 
 type ListAuditLogsByEntityTypeParams struct {
 	EntityType string `json:"entity_type"`
-	Limit      int32  `json:"limit"`
-	Offset     int32  `json:"offset"`
+	Limit      int64  `json:"limit"`
+	Offset     int64  `json:"offset"`
 }
 
 func (q *Queries) ListAuditLogsByEntityType(ctx context.Context, arg ListAuditLogsByEntityTypeParams) ([]AuditLog, error) {
@@ -386,8 +386,8 @@ LIMIT $2 OFFSET $3
 
 type ListAuditLogsByUserParams struct {
 	UserID pgtype.UUID `json:"user_id"`
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
+	Limit  int64       `json:"limit"`
+	Offset int64       `json:"offset"`
 }
 
 func (q *Queries) ListAuditLogsByUser(ctx context.Context, arg ListAuditLogsByUserParams) ([]AuditLog, error) {

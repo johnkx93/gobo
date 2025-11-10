@@ -112,8 +112,8 @@ LIMIT $1 OFFSET $2
 `
 
 type ListOrdersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit  int64 `json:"limit"`
+	Offset int64 `json:"offset"`
 }
 
 func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order, error) {
@@ -154,8 +154,8 @@ LIMIT $2 OFFSET $3
 
 type ListOrdersByUserIDParams struct {
 	UserID pgtype.UUID `json:"user_id"`
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
+	Limit  int64       `json:"limit"`
+	Offset int64       `json:"offset"`
 }
 
 func (q *Queries) ListOrdersByUserID(ctx context.Context, arg ListOrdersByUserIDParams) ([]Order, error) {

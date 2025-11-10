@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AssignPermissionToRole(ctx context.Context, arg AssignPermissionToRoleParams) error
 	CountAuditLogsByEntity(ctx context.Context, arg CountAuditLogsByEntityParams) (int64, error)
 	CountAuditLogsByUser(ctx context.Context, userID pgtype.UUID) (int64, error)
 	CountErrorLogsByDateRange(ctx context.Context, arg CountErrorLogsByDateRangeParams) (int64, error)
@@ -18,18 +19,31 @@ type Querier interface {
 	CreateAdmin(ctx context.Context, arg CreateAdminParams) (Admin, error)
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (AuditLog, error)
 	CreateErrorLog(ctx context.Context, arg CreateErrorLogParams) (ErrorLog, error)
+	CreateMenuItem(ctx context.Context, arg CreateMenuItemParams) (MenuItem, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
+	CreatePermission(ctx context.Context, arg CreatePermissionParams) (Permission, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAdmin(ctx context.Context, id pgtype.UUID) error
+	DeleteMenuItem(ctx context.Context, id pgtype.UUID) error
 	DeleteOrder(ctx context.Context, id pgtype.UUID) error
+	DeletePermission(ctx context.Context, id pgtype.UUID) error
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	GetAdminByEmail(ctx context.Context, email string) (Admin, error)
 	GetAdminByID(ctx context.Context, id pgtype.UUID) (Admin, error)
 	GetAdminByUsername(ctx context.Context, username string) (Admin, error)
+	GetAllMenuItems(ctx context.Context) ([]MenuItem, error)
+	GetAllPermissions(ctx context.Context) ([]Permission, error)
 	GetAuditLogByID(ctx context.Context, id pgtype.UUID) (AuditLog, error)
+	GetChildMenuItems(ctx context.Context, parentID pgtype.UUID) ([]MenuItem, error)
 	GetErrorLogByID(ctx context.Context, id pgtype.UUID) (ErrorLog, error)
+	GetMenuItemByCode(ctx context.Context, code string) (MenuItem, error)
+	GetMenuItemByID(ctx context.Context, id pgtype.UUID) (MenuItem, error)
+	GetMenuItemsByRole(ctx context.Context, role string) ([]GetMenuItemsByRoleRow, error)
 	GetOrderByID(ctx context.Context, id pgtype.UUID) (Order, error)
 	GetOrderByOrderNumber(ctx context.Context, orderNumber string) (Order, error)
+	GetPermissionByCode(ctx context.Context, code string) (Permission, error)
+	GetPermissionsByRole(ctx context.Context, role string) ([]Permission, error)
+	GetRolePermissionCodes(ctx context.Context, role string) ([]string, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
@@ -50,9 +64,12 @@ type Querier interface {
 	ListOrdersByUserID(ctx context.Context, arg ListOrdersByUserIDParams) ([]Order, error)
 	ListRecentErrors(ctx context.Context, arg ListRecentErrorsParams) ([]ErrorLog, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	RevokePermissionFromRole(ctx context.Context, arg RevokePermissionFromRoleParams) error
 	UpdateAdmin(ctx context.Context, arg UpdateAdminParams) (Admin, error)
+	UpdateMenuItem(ctx context.Context, arg UpdateMenuItemParams) (MenuItem, error)
 	UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error)
 	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)
+	UpdatePermission(ctx context.Context, arg UpdatePermissionParams) (Permission, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

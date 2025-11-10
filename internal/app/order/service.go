@@ -106,8 +106,8 @@ func (s *Service) ListOrders(ctx context.Context, limit, offset int32) ([]*Order
 	}
 
 	orders, err := s.queries.ListOrders(ctx, db.ListOrdersParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int64(limit),
+		Offset: int64(offset),
 	})
 	if err != nil {
 		slog.Error("failed to list orders", "error", err)
@@ -139,8 +139,8 @@ func (s *Service) ListOrdersByUserID(ctx context.Context, userID string, limit, 
 
 	orders, err := s.queries.ListOrdersByUserID(ctx, db.ListOrdersByUserIDParams{
 		UserID: pgtype.UUID{Bytes: uid, Valid: true},
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int64(limit),
+		Offset: int64(offset),
 	})
 	if err != nil {
 		slog.Error("failed to list orders by user", "user_id", userID, "error", err)

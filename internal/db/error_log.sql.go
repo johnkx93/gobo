@@ -139,8 +139,8 @@ LIMIT $3 OFFSET $4
 type ListErrorLogsByDateRangeParams struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
-	Limit       int32              `json:"limit"`
-	Offset      int32              `json:"offset"`
+	Limit       int64              `json:"limit"`
+	Offset      int64              `json:"offset"`
 }
 
 func (q *Queries) ListErrorLogsByDateRange(ctx context.Context, arg ListErrorLogsByDateRangeParams) ([]ErrorLog, error) {
@@ -190,8 +190,8 @@ LIMIT $2 OFFSET $3
 
 type ListErrorLogsByPathParams struct {
 	RequestPath pgtype.Text `json:"request_path"`
-	Limit       int32       `json:"limit"`
-	Offset      int32       `json:"offset"`
+	Limit       int64       `json:"limit"`
+	Offset      int64       `json:"offset"`
 }
 
 func (q *Queries) ListErrorLogsByPath(ctx context.Context, arg ListErrorLogsByPathParams) ([]ErrorLog, error) {
@@ -275,8 +275,8 @@ LIMIT $2 OFFSET $3
 
 type ListErrorLogsByTypeParams struct {
 	ErrorType string `json:"error_type"`
-	Limit     int32  `json:"limit"`
-	Offset    int32  `json:"offset"`
+	Limit     int64  `json:"limit"`
+	Offset    int64  `json:"offset"`
 }
 
 func (q *Queries) ListErrorLogsByType(ctx context.Context, arg ListErrorLogsByTypeParams) ([]ErrorLog, error) {
@@ -321,8 +321,8 @@ LIMIT $2 OFFSET $3
 
 type ListErrorLogsByUserParams struct {
 	UserID pgtype.UUID `json:"user_id"`
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
+	Limit  int64       `json:"limit"`
+	Offset int64       `json:"offset"`
 }
 
 func (q *Queries) ListErrorLogsByUser(ctx context.Context, arg ListErrorLogsByUserParams) ([]ErrorLog, error) {
@@ -365,8 +365,8 @@ LIMIT $1 OFFSET $2
 `
 
 type ListRecentErrorsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit  int64 `json:"limit"`
+	Offset int64 `json:"offset"`
 }
 
 func (q *Queries) ListRecentErrors(ctx context.Context, arg ListRecentErrorsParams) ([]ErrorLog, error) {

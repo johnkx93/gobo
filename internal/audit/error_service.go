@@ -95,8 +95,8 @@ func (s *Service) GetRecentErrors(ctx context.Context, limit, offset int32) ([]d
 	}
 
 	logs, err := s.queries.ListRecentErrors(ctx, db.ListRecentErrorsParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int64(limit),
+		Offset: int64(offset),
 	})
 	if err != nil {
 		slog.Error("failed to get recent errors", "error", err)
@@ -117,8 +117,8 @@ func (s *Service) GetErrorsByType(ctx context.Context, errorType string, limit, 
 
 	logs, err := s.queries.ListErrorLogsByType(ctx, db.ListErrorLogsByTypeParams{
 		ErrorType: errorType,
-		Limit:     limit,
-		Offset:    offset,
+		Limit:     int64(limit),
+		Offset:    int64(offset),
 	})
 	if err != nil {
 		slog.Error("failed to get errors by type", "error", err, "error_type", errorType)

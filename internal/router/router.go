@@ -8,6 +8,7 @@ import (
 	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/auth"
+	"github.com/user/coc/internal/app/menu"
 	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/middleware"
@@ -23,8 +24,10 @@ func New(
 	userAuthHandler *auth.Handler,
 	adminAuthHandler *admin_auth.AuthHandler,
 	adminHandler *admin.Handler,
+	menuHandler *menu.Handler,
 	userAuthMiddleware func(http.Handler) http.Handler,
 	adminAuthMiddleware func(http.Handler) http.Handler,
+	permissionMiddleware *middleware.PermissionMiddleware,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -56,7 +59,9 @@ func New(
 		orderAdminHandler,
 		adminAuthHandler,
 		adminHandler,
+		menuHandler,
 		adminAuthMiddleware,
+		permissionMiddleware,
 	))
 
 	return r
