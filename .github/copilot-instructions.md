@@ -596,6 +596,179 @@ internal/app/address/
 - Trigger functionality
 - Full request-to-database workflows
 
+**Step 3: Integration Tests (Real Database)**
+
+Integration tests verify the complete flow from service to database using real PostgreSQL.
+
+1. **Create Integration Test File:**
+
+   - File naming: `integration_test.go` in the module folder
+   - Uses real Docker Postgres database
+   - All tests use transactions with rollback for cleanup
+
+2. **Setup Test Database Helper:**
+
+   ```go
+   func setupTestDB(t *testing.T) (*pgxpool.Pool, *db.Queries, *audit.Service) {
+       t.Helper()
+
+       // Use DATABASE_URL from environment (Docker Postgres)
+       databaseURL := os.Getenv("DATABASE_URL")
+       if databaseURL == "" {
+           t.Skip("DATABASE_URL not set, skipping integration tests")
+       }
+
+       ctx := context.Background()
+
+       // Parse and create pool config
+       config, err := pgxpool.ParseConfig(databaseURL)
+       if err != nil {
+           t.Fatalf("failed to parse database URL: %v", err)
+       }
+
+       // Configure pool for testing
+       config.MaxConns = 10
+       config.MinConns = 2
+
+       pool, err := pgxpool.NewWithConfig(ctx, config)
+       if err != nil {
+           t.Fatalf("failed to create connection pool: %v", err)
+       }
+
+       // Verify connection
+       if err := pool.Ping(ctx); err != nil {
+           pool.Close()
+           t.Fatalf("failed to ping database: %v", err)
+       }
+
+       // Create queries and services
+       queries := db.New(pool)
+       auditService := audit.NewService(queries)
+
+       // Cleanup on test completion
+       t.Cleanup(func() {
+           pool.Close()
+       })
+
+       return pool, queries, auditService
+   }
+   ```
+
+3. **Write Integration Tests with Transactions:**
+
+   ```go
+   func TestIntegration_AdminService_CreateEntity(t *testing.T) {
+       pool, queries, auditService := setupTestDB(t)
+
+       ctx := context.Background()
+
+       // Start transaction for isolation
+       tx, err := pool.Begin(ctx)
+       if err != nil {
+           t.Fatalf("failed to begin transaction: %v", err)
+       }
+       defer tx.Rollback(ctx) // CRITICAL: Cleanup test data
+
+       // Use transaction for queries
+       qtx := queries.WithTx(tx)
+       service := NewAdminService(qtx, auditService)
+
+       // Create test data
+       result, err := service.CreateEntity(ctx, createRequest)
+       if err != nil {
+           t.Fatalf("CreateEntity failed: %v", err)
+       }
+
+       // Verify data in database
+       dbEntity, err := qtx.GetEntity(ctx, entityID)
+       if err != nil {
+           t.Fatalf("failed to get entity from database: %v", err)
+       }
+
+       // Verify audit log created
+       auditLogs, err := qtx.ListAuditLogsByEntity(ctx, db.ListAuditLogsByEntityParams{
+           EntityType: "entities",
+           EntityID:   pgtype.UUID{Bytes: entityID, Valid: true},
+           Limit:      10,
+           Offset:     0,
+       })
+       if err != nil {
+           t.Fatalf("failed to get audit logs: %v", err)
+       }
+
+       if len(auditLogs) == 0 {
+           t.Error("expected audit log entry, got none")
+       }
+
+       if auditLogs[0].Action != "CREATE" {
+           t.Errorf("expected audit action CREATE, got %s", auditLogs[0].Action)
+       }
+
+       // Transaction rolls back automatically - no cleanup needed!
+   }
+   ```
+
+4. **What Integration Tests Should Cover:**
+
+   - ✅ Full CRUD workflows (Create → Read → Update → Delete)
+   - ✅ Database operations with SQLC queries
+   - ✅ Audit trail creation in `audit_logs` table
+   - ✅ Complex queries and joins
+   - ✅ Transaction handling
+   - ✅ Trigger functionality (like `updated_at` auto-update)
+   - ✅ Foreign key constraints and cascades
+   - ✅ Data integrity and validation at DB level
+   - ✅ Ownership enforcement (user-owned resources)
+   - ✅ Error handling for duplicate entries, constraint violations
+
+5. **Run Integration Tests:**
+
+   ```bash
+   export DATABASE_URL="postgres://postgres:postgres@localhost:5432/appdb?sslmode=disable"
+   go test -v ./internal/app/modulename/... -run "TestIntegration"
+   ```
+
+6. **Key Integration Test Patterns:**
+   - **Transaction Isolation:** Each test starts with `tx.Begin()` and ends with `defer tx.Rollback(ctx)`
+   - **No Leftover Data:** Rollback ensures database stays clean
+   - **Real Database:** Tests actual SQL queries, triggers, and constraints
+   - **Skip if No DB:** Tests skip gracefully if `DATABASE_URL` not set
+   - **Helper Functions:** Create test users, entities with `createTestUser()`, etc.
+
+**Complete Test File Structure:**
+
+```
+internal/app/address/
+├── admin_service.go
+├── admin_service_test.go       # Step 1: Service validation tests (no DB)
+├── admin_handler.go
+├── admin_handler_test.go       # Step 2: Handler HTTP tests (no DB)
+├── frontend_service.go
+├── frontend_service_test.go    # Step 1: Service validation tests (no DB)
+├── frontend_handler.go
+├── frontend_handler_test.go    # Step 2: Handler HTTP tests (no DB)
+├── integration_test.go         # Step 3: Integration tests (real DB)
+└── dto.go
+```
+
+**Running All Tests:**
+
+```bash
+# Unit tests only (fast, no database required)
+go test -v ./internal/app/modulename/... -short
+
+# Integration tests only (requires DATABASE_URL)
+export DATABASE_URL="postgres://..."
+go test -v ./internal/app/modulename/... -run "TestIntegration"
+
+# All tests (unit + integration)
+export DATABASE_URL="postgres://..."
+go test -v ./internal/app/modulename/...
+
+# With coverage
+go test -cover ./internal/app/modulename/...
+```
+
 ### 11. Security Best Practices
 
 - Audit service automatically filters sensitive fields (password_hash, token, secret, etc.)
