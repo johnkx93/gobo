@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/user/coc/internal/app/user_auth"
+	"github.com/user/coc/internal/app/frontend_auth"
 	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/db"
 )
 
 // Middleware creates a middleware that validates JWT tokens and adds user to context
-func Middleware(authService *user_auth.Service, queries *db.Queries) func(http.Handler) http.Handler {
+func Middleware(authService *frontend_auth.Service, queries *db.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Get token from Authorization header

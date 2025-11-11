@@ -13,11 +13,11 @@ import (
 // AdminHandler handles admin-specific user operations
 // Admins can manage ALL users (create, read, update, delete any user)
 type AdminHandler struct {
-	service  *Service
+	service  *AdminService
 	validate *validation.Validator
 }
 
-func NewAdminHandler(service *Service, validator *validation.Validator) *AdminHandler {
+func NewAdminHandler(service *AdminService, validator *validation.Validator) *AdminHandler {
 	return &AdminHandler{
 		service:  service,
 		validate: validator,

@@ -12,11 +12,11 @@ import (
 // FrontendHandler handles frontend/customer-facing user operations
 // Users can only access and modify their OWN data
 type FrontendHandler struct {
-	service  *Service
+	service  *FrontendService
 	validate *validation.Validator
 }
 
-func NewFrontendHandler(service *Service, validator *validation.Validator) *FrontendHandler {
+func NewFrontendHandler(service *FrontendService, validator *validation.Validator) *FrontendHandler {
 	return &FrontendHandler{
 		service:  service,
 		validate: validator,

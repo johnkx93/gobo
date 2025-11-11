@@ -162,7 +162,7 @@ entityFrontendHandler := entity.NewFrontendHandler(entityUserService, validator)
 **When to Use Single Service:**
 
 - Module is admin-only (e.g., `admin_management`)
-- Module is user-only (e.g., `user_auth`)
+- Module is user-only (e.g., `frontend_auth`)
 - No ownership or permission differences
 
 ### 8. Migration Safety

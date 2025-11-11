@@ -15,8 +15,8 @@ import (
 	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_menu"
+	"github.com/user/coc/internal/app/frontend_auth"
 	"github.com/user/coc/internal/app/user"
-	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/audit"
 	"github.com/user/coc/internal/config"
 	"github.com/user/coc/internal/db"
@@ -87,13 +87,14 @@ func main() {
 	auditService := audit.NewService(queries)
 
 	// User auth service (for frontend API)
-	authService := user_auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
-	authHandler := user_auth.NewHandler(authService, validator)
+	authService := frontend_auth.NewService(queries, auditService, cfg.JWTSecret, bearerTokenDuration)
+	authHandler := frontend_auth.NewHandler(authService, validator)
 
 	// User services (for frontend and admin)
-	userService := user.NewService(queries, auditService)
-	userAdminHandler := user.NewAdminHandler(userService, validator)
-	userFrontendHandler := user.NewFrontendHandler(userService, validator)
+	userAdminService := user.NewAdminService(queries, auditService)
+	userFrontendService := user.NewFrontendService(queries, auditService)
+	userAdminHandler := user.NewAdminHandler(userAdminService, validator)
+	userFrontendHandler := user.NewFrontendHandler(userFrontendService, validator)
 
 	// Address services (separate for frontend and admin)
 	addressAdminService := address.NewAdminService(queries, auditService)

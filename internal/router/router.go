@@ -9,8 +9,8 @@ import (
 	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_menu"
+	"github.com/user/coc/internal/app/frontend_auth"
 	"github.com/user/coc/internal/app/user"
-	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/middleware"
 )
 
@@ -21,7 +21,7 @@ func New(
 	userFrontendHandler *user.FrontendHandler,
 	addressAdminHandler *address.AdminHandler,
 	addressFrontendHandler *address.FrontendHandler,
-	userAuthHandler *user_auth.Handler,
+	userAuthHandler *frontend_auth.Handler,
 	adminAuthHandler *admin_auth.AuthHandler,
 	adminHandler *admin.Handler,
 	menuHandler *admin_menu.Handler,
