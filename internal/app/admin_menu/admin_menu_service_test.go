@@ -21,14 +21,14 @@ func TestBuildMenuTree_SingleRootItem(t *testing.T) {
 	rootID := uuid.New()
 	items := []db.GetMenuItemsByRoleRow{
 		{
-			ID: pgtype.UUID{Bytes: rootID, Valid: true},
-			ParentID: pgtype.UUID{Valid: false}, // No parent
-			Code: "dashboard",
-			Label: "Dashboard",
-			Icon: pgtype.Text{String: "dashboard-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/dashboard", Valid: true},
+			ID:           pgtype.UUID{Bytes: rootID, Valid: true},
+			ParentID:     pgtype.UUID{Valid: false}, // No parent
+			Code:         "dashboard",
+			Label:        "Dashboard",
+			Icon:         pgtype.Text{String: "dashboard-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/dashboard", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false}, // No permission required
-			OrderIndex: 1,
+			OrderIndex:   1,
 		},
 	}
 
@@ -65,24 +65,24 @@ func TestBuildMenuTree_ParentChildRelationship(t *testing.T) {
 
 	items := []db.GetMenuItemsByRoleRow{
 		{
-			ID: pgtype.UUID{Bytes: parentID, Valid: true},
-			ParentID: pgtype.UUID{Valid: false}, // Root item
-			Code: "users",
-			Label: "User Management",
-			Icon: pgtype.Text{String: "users-icon", Valid: true},
-			Path: pgtype.Text{Valid: false}, // No path for parent
+			ID:           pgtype.UUID{Bytes: parentID, Valid: true},
+			ParentID:     pgtype.UUID{Valid: false}, // Root item
+			Code:         "users",
+			Label:        "User Management",
+			Icon:         pgtype.Text{String: "users-icon", Valid: true},
+			Path:         pgtype.Text{Valid: false}, // No path for parent
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 2,
+			OrderIndex:   2,
 		},
 		{
-			ID: pgtype.UUID{Bytes: childID, Valid: true},
-			ParentID: pgtype.UUID{Bytes: parentID, Valid: true}, // Child of parent
-			Code: "user-list",
-			Label: "User List",
-			Icon: pgtype.Text{String: "list-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/users", Valid: true},
+			ID:           pgtype.UUID{Bytes: childID, Valid: true},
+			ParentID:     pgtype.UUID{Bytes: parentID, Valid: true}, // Child of parent
+			Code:         "user-list",
+			Label:        "User List",
+			Icon:         pgtype.Text{String: "list-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/users", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 1,
+			OrderIndex:   1,
 		},
 	}
 
@@ -129,58 +129,58 @@ func TestBuildMenuTree_MultipleRootsAndChildren(t *testing.T) {
 	items := []db.GetMenuItemsByRoleRow{
 		// Dashboard (root)
 		{
-			ID: pgtype.UUID{Bytes: dashboardID, Valid: true},
-			ParentID: pgtype.UUID{Valid: false},
-			Code: "dashboard",
-			Label: "Dashboard",
-			Icon: pgtype.Text{String: "dashboard-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/dashboard", Valid: true},
+			ID:           pgtype.UUID{Bytes: dashboardID, Valid: true},
+			ParentID:     pgtype.UUID{Valid: false},
+			Code:         "dashboard",
+			Label:        "Dashboard",
+			Icon:         pgtype.Text{String: "dashboard-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/dashboard", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 1,
+			OrderIndex:   1,
 		},
 		// Users (root)
 		{
-			ID: pgtype.UUID{Bytes: usersID, Valid: true},
-			ParentID: pgtype.UUID{Valid: false},
-			Code: "users",
-			Label: "User Management",
-			Icon: pgtype.Text{String: "users-icon", Valid: true},
-			Path: pgtype.Text{Valid: false},
+			ID:           pgtype.UUID{Bytes: usersID, Valid: true},
+			ParentID:     pgtype.UUID{Valid: false},
+			Code:         "users",
+			Label:        "User Management",
+			Icon:         pgtype.Text{String: "users-icon", Valid: true},
+			Path:         pgtype.Text{Valid: false},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 2,
+			OrderIndex:   2,
 		},
 		// User List (child of Users)
 		{
-			ID: pgtype.UUID{Bytes: userListID, Valid: true},
-			ParentID: pgtype.UUID{Bytes: usersID, Valid: true},
-			Code: "user-list",
-			Label: "User List",
-			Icon: pgtype.Text{String: "list-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/users", Valid: true},
+			ID:           pgtype.UUID{Bytes: userListID, Valid: true},
+			ParentID:     pgtype.UUID{Bytes: usersID, Valid: true},
+			Code:         "user-list",
+			Label:        "User List",
+			Icon:         pgtype.Text{String: "list-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/users", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 1,
+			OrderIndex:   1,
 		},
 		// User Create (child of Users)
 		{
-			ID: pgtype.UUID{Bytes: userCreateID, Valid: true},
-			ParentID: pgtype.UUID{Bytes: usersID, Valid: true},
-			Code: "user-create",
-			Label: "Create User",
-			Icon: pgtype.Text{String: "plus-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/users/create", Valid: true},
+			ID:           pgtype.UUID{Bytes: userCreateID, Valid: true},
+			ParentID:     pgtype.UUID{Bytes: usersID, Valid: true},
+			Code:         "user-create",
+			Label:        "Create User",
+			Icon:         pgtype.Text{String: "plus-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/users/create", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 2,
+			OrderIndex:   2,
 		},
 		// Settings (root)
 		{
-			ID: pgtype.UUID{Bytes: settingsID, Valid: true},
-			ParentID: pgtype.UUID{Valid: false},
-			Code: "settings",
-			Label: "Settings",
-			Icon: pgtype.Text{String: "settings-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/settings", Valid: true},
+			ID:           pgtype.UUID{Bytes: settingsID, Valid: true},
+			ParentID:     pgtype.UUID{Valid: false},
+			Code:         "settings",
+			Label:        "Settings",
+			Icon:         pgtype.Text{String: "settings-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/settings", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 3,
+			OrderIndex:   3,
 		},
 	}
 
@@ -223,14 +223,14 @@ func TestBuildMenuTree_OrphanedChild(t *testing.T) {
 
 	items := []db.GetMenuItemsByRoleRow{
 		{
-			ID: pgtype.UUID{Bytes: childID, Valid: true},
-			ParentID: pgtype.UUID{Bytes: nonExistentParentID, Valid: true}, // Parent doesn't exist
-			Code: "orphan",
-			Label: "Orphan Child",
-			Icon: pgtype.Text{String: "orphan-icon", Valid: true},
-			Path: pgtype.Text{String: "/admin/orphan", Valid: true},
+			ID:           pgtype.UUID{Bytes: childID, Valid: true},
+			ParentID:     pgtype.UUID{Bytes: nonExistentParentID, Valid: true}, // Parent doesn't exist
+			Code:         "orphan",
+			Label:        "Orphan Child",
+			Icon:         pgtype.Text{String: "orphan-icon", Valid: true},
+			Path:         pgtype.Text{String: "/admin/orphan", Valid: true},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 1,
+			OrderIndex:   1,
 		},
 	}
 
@@ -246,14 +246,14 @@ func TestBuildMenuTree_InvalidUUID(t *testing.T) {
 	// Test with invalid UUID bytes (should not panic)
 	items := []db.GetMenuItemsByRoleRow{
 		{
-			ID: pgtype.UUID{Bytes: [16]byte{}, Valid: true}, // Invalid UUID
-			ParentID: pgtype.UUID{Valid: false},
-			Code: "test",
-			Label: "Test Item",
-			Icon: pgtype.Text{Valid: false},
-			Path: pgtype.Text{Valid: false},
+			ID:           pgtype.UUID{Bytes: [16]byte{}, Valid: true}, // Invalid UUID
+			ParentID:     pgtype.UUID{Valid: false},
+			Code:         "test",
+			Label:        "Test Item",
+			Icon:         pgtype.Text{Valid: false},
+			Path:         pgtype.Text{Valid: false},
 			PermissionID: pgtype.UUID{Valid: false},
-			OrderIndex: 1,
+			OrderIndex:   1,
 		},
 	}
 
