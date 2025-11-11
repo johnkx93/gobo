@@ -391,9 +391,9 @@ func TestIntegration_AdminService_DeleteAdmin(t *testing.T) {
 }
 
 // Helper function
-func stringPtr(s string) *string {
-	return &s
-}
+// func stringPtr(s string) *string {
+// 	return &s
+// }
 
 // Helper function to convert string ID to pgtype.UUID
 func stringToPgUUID(idStr string) pgtype.UUID {
