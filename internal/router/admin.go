@@ -8,7 +8,6 @@ import (
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
-	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/middleware"
 )
@@ -17,7 +16,6 @@ import (
 // Routes are prefixed with /api/admin/v1
 func NewAdminRouter(
 	userAdminHandler *user.AdminHandler,
-	orderAdminHandler *order.AdminHandler,
 	addressAdminHandler *address.AdminHandler,
 	adminAuthHandler *admin_auth.AuthHandler,
 	adminHandler *admin_management.Handler,
@@ -75,23 +73,7 @@ func NewAdminRouter(
 		r.Delete("/{id}", adminHandler.DeleteAdmin)
 	})
 
-	// Admin order management (protected)
-	r.Route("/orders", func(r chi.Router) {
-		r.Use(adminAuthMiddleware) // Protect all admin order routes
-
-		// Create requires orders.create permission
-		r.With(permissionMiddleware.RequirePermission("orders.create")).Post("/", orderAdminHandler.CreateOrder)
-
-		// Read requires orders.read permission
-		r.With(permissionMiddleware.RequirePermission("orders.read")).Get("/", orderAdminHandler.ListOrders)
-		r.With(permissionMiddleware.RequirePermission("orders.read")).Get("/{id}", orderAdminHandler.GetOrder)
-
-		// Update requires orders.update permission
-		r.With(permissionMiddleware.RequirePermission("orders.update")).Put("/{id}", orderAdminHandler.UpdateOrder)
-
-		// Delete requires orders.delete permission
-		r.With(permissionMiddleware.RequirePermission("orders.delete")).Delete("/{id}", orderAdminHandler.DeleteOrder)
-	})
+	// (orders feature removed)
 
 	// Admin address management (protected)
 	r.Route("/addresses", func(r chi.Router) {

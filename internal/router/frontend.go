@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/user/coc/internal/app/address"
-	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/middleware"
@@ -15,7 +14,6 @@ import (
 // Routes are prefixed with /api/v1
 func NewFrontendRouter(
 	userFrontendHandler *user.FrontendHandler,
-	orderFrontendHandler *order.FrontendHandler,
 	addressFrontendHandler *address.FrontendHandler,
 	authHandler *user_auth.Handler,
 	authMiddleware func(http.Handler) http.Handler,
@@ -39,15 +37,7 @@ func NewFrontendRouter(
 		r.Put("/me", userFrontendHandler.UpdateMe) // Update current user profile
 	})
 
-	// Frontend order routes (protected - users can manage their own orders)
-	r.Route("/orders", func(r chi.Router) {
-		r.Use(authMiddleware)
-		r.Post("/", orderFrontendHandler.CreateOrder)    // Create own order
-		r.Get("/", orderFrontendHandler.ListOrders)      // List own orders
-		r.Get("/{id}", orderFrontendHandler.GetOrder)    // Get own order by ID
-		r.Put("/{id}", orderFrontendHandler.UpdateOrder) // Update own order
-		// Note: Delete is not exposed on frontend (business decision)
-	})
+	// (orders feature removed)
 
 	// Frontend address routes (protected - users can manage their own addresses)
 	r.Route("/addresses", func(r chi.Router) {

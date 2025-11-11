@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -19,7 +18,6 @@ import (
 
 const (
 	defaultUsers     = 50
-	defaultOrders    = 200
 	defaultAdmins    = 5
 	defaultAddresses = 150 // ~3 addresses per user on average
 )
@@ -27,7 +25,6 @@ const (
 func main() {
 	// Parse command line flags
 	numUsers := flag.Int("users", defaultUsers, "Number of users to generate")
-	numOrders := flag.Int("orders", defaultOrders, "Number of orders to generate")
 	numAdmins := flag.Int("admins", defaultAdmins, "Number of admins to generate")
 	numAddresses := flag.Int("addresses", defaultAddresses, "Number of addresses to generate")
 	clearData := flag.Bool("clear", false, "Clear existing data before seeding")
@@ -90,23 +87,12 @@ func main() {
 	}
 	fmt.Printf("✅ Created %d addresses\n", addressCount)
 
-	// Seed orders
-	fmt.Printf("📦 Generating %d orders...\n", *numOrders)
-	orderCount, err := seedOrders(ctx, queries, userIDs, *numOrders)
-	if err != nil {
-		log.Fatalf("Failed to seed orders: %v", err)
-	}
-	fmt.Printf("✅ Created %d orders\n", orderCount)
+	// Orders seeding removed
 
 	fmt.Println("\n🎉 Seeding completed successfully!")
 }
 
 func clearDatabase(ctx context.Context, pool *pgxpool.Pool) error {
-	// Delete orders first (due to foreign key constraint)
-	if _, err := pool.Exec(ctx, "DELETE FROM orders"); err != nil {
-		return fmt.Errorf("failed to delete orders: %w", err)
-	}
-
 	// Delete addresses (must be before users due to foreign key)
 	if _, err := pool.Exec(ctx, "DELETE FROM addresses"); err != nil {
 		return fmt.Errorf("failed to delete addresses: %w", err)
@@ -220,66 +206,7 @@ func seedUsers(ctx context.Context, queries *db.Queries, count int) ([]pgtype.UU
 	return userIDs, nil
 }
 
-func seedOrders(ctx context.Context, queries *db.Queries, userIDs []pgtype.UUID, count int) (int, error) {
-	if len(userIDs) == 0 {
-		return 0, fmt.Errorf("no users available to create orders for")
-	}
 
-	statuses := []string{"pending", "completed", "shipped", "cancelled"}
-	orderCount := 0
-
-	for i := 0; i < count; i++ {
-		// Random user
-		userID := userIDs[gofakeit.Number(0, len(userIDs)-1)]
-
-		// Generate order number
-		orderNumber := fmt.Sprintf("ORD-%s-%06d",
-			time.Now().Format("20060102"), gofakeit.Number(100000, 999999))
-
-		// Random status
-		status := statuses[gofakeit.Number(0, len(statuses)-1)]
-
-		// Random amount between 10 and 1000
-		amount := fmt.Sprintf("%.2f", gofakeit.Price(10, 1000))
-		totalAmount := pgtype.Numeric{}
-		if err := totalAmount.Scan(amount); err != nil {
-			return orderCount, fmt.Errorf("failed to scan amount: %w", err)
-		}
-
-		// Random notes (50% chance of having notes)
-		notes := pgtype.Text{Valid: false}
-		if gofakeit.Bool() {
-			notes = pgtype.Text{
-				String: gofakeit.Sentence(gofakeit.Number(5, 15)),
-				Valid:  true,
-			}
-		}
-
-		_, err := queries.CreateOrder(ctx, db.CreateOrderParams{
-			UserID:      userID,
-			OrderNumber: orderNumber,
-			Status:      status,
-			TotalAmount: totalAmount,
-			Notes:       notes,
-		})
-		if err != nil {
-			// Skip duplicates and continue
-			if i < count-1 {
-				continue
-			}
-			return orderCount, fmt.Errorf("failed to create order %d: %w", i, err)
-		}
-
-		orderCount++
-
-		// Progress indicator
-		if (orderCount)%50 == 0 {
-			fmt.Printf("  ... %d/%d orders created\n", orderCount, count)
-		}
-	}
-
-	return orderCount, nil
-}
 
 func seedAddresses(ctx context.Context, queries *db.Queries, userIDs []pgtype.UUID, count int) (int, error) {
 	if len(userIDs) == 0 {

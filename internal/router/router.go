@@ -9,7 +9,6 @@ import (
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
-	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/middleware"
@@ -20,8 +19,6 @@ import (
 func New(
 	userAdminHandler *user.AdminHandler,
 	userFrontendHandler *user.FrontendHandler,
-	orderAdminHandler *order.AdminHandler,
-	orderFrontendHandler *order.FrontendHandler,
 	addressAdminHandler *address.AdminHandler,
 	addressFrontendHandler *address.FrontendHandler,
 	userAuthHandler *user_auth.Handler,
@@ -51,7 +48,6 @@ func New(
 	// Mount frontend API router (customer-facing)
 	r.Mount("/api/v1", NewFrontendRouter(
 		userFrontendHandler,
-		orderFrontendHandler,
 		addressFrontendHandler,
 		userAuthHandler,
 		userAuthMiddleware,
@@ -60,7 +56,6 @@ func New(
 	// Mount admin API router (admin panel)
 	r.Mount("/api/admin/v1", NewAdminRouter(
 		userAdminHandler,
-		orderAdminHandler,
 		addressAdminHandler,
 		adminAuthHandler,
 		adminHandler,

@@ -93,11 +93,12 @@ dev: docker-up migrate-up sqlc-generate run ## Start development environment
 setup: deps docker-up migrate-up sqlc-generate ## Initial project setup
 	@echo "Setup complete! Run 'make run' to start the server."
 
-seed: ## Seed database with fake data (usage: make seed users=50 orders=200)
-	go run cmd/seeder/main.go -users=$(or $(users),50) -orders=$(or $(orders),200)
+
+seed: ## Seed database with fake data (usage: make seed users=50)
+	go run cmd/seeder/main.go -users=$(or $(users),50)
 
 seed-clear: ## Clear and reseed database with fake data
-	go run cmd/seeder/main.go -clear -users=$(or $(users),50) -orders=$(or $(orders),200)
+	go run cmd/seeder/main.go -clear -users=$(or $(users),50)
 
 # Database backup/restore
 db-backup: ## Backup database to file (usage: make db-backup file=backups/backup.sql)

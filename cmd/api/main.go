@@ -15,7 +15,6 @@ import (
 	"github.com/user/coc/internal/app/admin_auth"
 	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
-	"github.com/user/coc/internal/app/order"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/app/user_auth"
 	"github.com/user/coc/internal/audit"
@@ -96,11 +95,6 @@ func main() {
 	userAdminHandler := user.NewAdminHandler(userService, validator)
 	userFrontendHandler := user.NewFrontendHandler(userService, validator)
 
-	// Order services (for frontend and admin)
-	orderService := order.NewService(queries, auditService)
-	orderAdminHandler := order.NewAdminHandler(orderService, validator)
-	orderFrontendHandler := order.NewFrontendHandler(orderService, validator)
-
 	// Address services (separate for frontend and admin)
 	addressAdminService := address.NewAdminService(queries, auditService)
 	addressUserService := address.NewUserService(queries, auditService)
@@ -132,8 +126,6 @@ func main() {
 	r := router.New(
 		userAdminHandler,
 		userFrontendHandler,
-		orderAdminHandler,
-		orderFrontendHandler,
 		addressAdminHandler,
 		addressFrontendHandler,
 		authHandler,
