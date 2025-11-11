@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/response"
 	"github.com/user/coc/internal/validation"
 )
@@ -27,6 +28,13 @@ func NewAdminHandler(service *AdminService, validator *validation.Validator) *Ad
 // CreateUser handles POST /api/admin/v1/users
 // Admin creates a new user (can create any user)
 func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	var req CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "invalid request body")
@@ -51,6 +59,13 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 // GetUser handles GET /api/admin/v1/users/{id}
 // Admin can get ANY user by ID
 func (h *AdminHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		response.Error(w, http.StatusBadRequest, "user ID is required")
@@ -69,6 +84,13 @@ func (h *AdminHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // ListUsers handles GET /api/admin/v1/users
 // Admin can list ALL users with pagination
 func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	limit, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
 	offset, _ := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 32)
 
@@ -88,6 +110,13 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 // UpdateUser handles PUT /api/admin/v1/users/{id}
 // Admin can update ANY user
 func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		response.Error(w, http.StatusBadRequest, "user ID is required")
@@ -118,6 +147,13 @@ func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 // DeleteUser handles DELETE /api/admin/v1/users/{id}
 // Admin can delete ANY user
 func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		response.Error(w, http.StatusBadRequest, "user ID is required")
