@@ -14,11 +14,11 @@ import (
 // AdminHandler handles admin-specific address operations
 // Admins can manage ALL addresses (create, read, update, delete any address)
 type AdminHandler struct {
-	service  *Service
+	service  *AdminService
 	validate *validation.Validator
 }
 
-func NewAdminHandler(service *Service, validator *validation.Validator) *AdminHandler {
+func NewAdminHandler(service *AdminService, validator *validation.Validator) *AdminHandler {
 	return &AdminHandler{
 		service:  service,
 		validate: validator,

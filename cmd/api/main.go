@@ -101,10 +101,11 @@ func main() {
 	orderAdminHandler := order.NewAdminHandler(orderService, validator)
 	orderFrontendHandler := order.NewFrontendHandler(orderService, validator)
 
-	// Address services (for frontend and admin)
-	addressService := address.NewService(queries, auditService)
-	addressAdminHandler := address.NewAdminHandler(addressService, validator)
-	addressFrontendHandler := address.NewFrontendHandler(addressService, validator)
+	// Address services (separate for frontend and admin)
+	addressAdminService := address.NewAdminService(queries, auditService)
+	addressUserService := address.NewUserService(queries, auditService)
+	addressAdminHandler := address.NewAdminHandler(addressAdminService, validator)
+	addressFrontendHandler := address.NewFrontendHandler(addressUserService, validator)
 
 	// Admin authentication service and handler (for admin login)
 	adminAuthService := admin_auth.NewAuthService(queries, cfg.JWTSecret)

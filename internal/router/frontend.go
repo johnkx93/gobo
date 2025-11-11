@@ -52,12 +52,12 @@ func NewFrontendRouter(
 	// Frontend address routes (protected - users can manage their own addresses)
 	r.Route("/addresses", func(r chi.Router) {
 		r.Use(authMiddleware)
-		r.Post("/", addressFrontendHandler.CreateMyAddress)            // Create own address
-		r.Get("/", addressFrontendHandler.ListMyAddresses)             // List own addresses
-		r.Get("/{id}", addressFrontendHandler.GetMyAddress)            // Get own address by ID
-		r.Put("/{id}", addressFrontendHandler.UpdateMyAddress)         // Update own address
-		r.Delete("/{id}", addressFrontendHandler.DeleteMyAddress)      // Delete own address
-		r.Post("/default", addressFrontendHandler.SetMyDefaultAddress) // Set default address
+		r.Post("/", addressFrontendHandler.CreateAddress)            // Create own address
+		r.Get("/", addressFrontendHandler.ListAddresses)             // List own addresses
+		r.Get("/{id}", addressFrontendHandler.GetAddress)            // Get own address by ID
+		r.Put("/{id}", addressFrontendHandler.UpdateAddress)         // Update own address
+		r.Delete("/{id}", addressFrontendHandler.DeleteAddress)      // Delete own address
+		r.Post("/default", addressFrontendHandler.SetDefaultAddress) // Set default address
 	})
 
 	return r
