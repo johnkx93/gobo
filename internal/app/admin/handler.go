@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/user/coc/internal/ctxkeys"
 	"github.com/user/coc/internal/response"
 	"github.com/user/coc/internal/validation"
 )
@@ -26,6 +27,13 @@ func NewHandler(service *Service, validator *validation.Validator) *Handler {
 // CreateAdmin handles POST /api/admin/v1/admins
 // Only super_admin should be able to create new admins
 func (h *Handler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	var req CreateAdminRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "invalid request body")
@@ -49,6 +57,13 @@ func (h *Handler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
 
 // GetAdmin handles GET /api/admin/v1/admins/{id}
 func (h *Handler) GetAdmin(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		response.Error(w, http.StatusBadRequest, "admin ID is required")
@@ -66,6 +81,13 @@ func (h *Handler) GetAdmin(w http.ResponseWriter, r *http.Request) {
 
 // ListAdmins handles GET /api/admin/v1/admins
 func (h *Handler) ListAdmins(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	limit, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
 	offset, _ := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 32)
 
@@ -84,6 +106,13 @@ func (h *Handler) ListAdmins(w http.ResponseWriter, r *http.Request) {
 
 // UpdateAdmin handles PUT /api/admin/v1/admins/{id}
 func (h *Handler) UpdateAdmin(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		response.Error(w, http.StatusBadRequest, "admin ID is required")
@@ -113,6 +142,13 @@ func (h *Handler) UpdateAdmin(w http.ResponseWriter, r *http.Request) {
 
 // DeleteAdmin handles DELETE /api/admin/v1/admins/{id}
 func (h *Handler) DeleteAdmin(w http.ResponseWriter, r *http.Request) {
+	// REQUIRED: Check admin role first
+	role, ok := ctxkeys.GetAdminRole(r)
+	if !ok || role == "" {
+		response.Error(w, http.StatusUnauthorized, "admin role not found")
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		response.Error(w, http.StatusBadRequest, "admin ID is required")
