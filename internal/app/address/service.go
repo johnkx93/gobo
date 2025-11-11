@@ -3,6 +3,7 @@ package address
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -44,9 +45,9 @@ func (s *Service) CreateAddress(ctx context.Context, req CreateAddressRequest) (
 	// Create address
 	address, err := s.queries.CreateAddress(ctx, db.CreateAddressParams{
 		UserID:      pgtype.UUID{Bytes: userID, Valid: true},
-		Address:     req.Address,
-		Floor:       req.Floor,
-		UnitNo:      req.UnitNo,
+		Address:     strings.TrimSpace(req.Address),
+		Floor:       strings.TrimSpace(req.Floor),
+		UnitNo:      strings.TrimSpace(req.UnitNo),
 		BlockTower:  pgtype.Text{String: getStringValue(req.BlockTower), Valid: req.BlockTower != nil},
 		CompanyName: pgtype.Text{String: getStringValue(req.CompanyName), Valid: req.CompanyName != nil},
 	})
@@ -67,9 +68,9 @@ func (s *Service) CreateAddressForUser(ctx context.Context, userID uuid.UUID, re
 	// Create address
 	address, err := s.queries.CreateAddress(ctx, db.CreateAddressParams{
 		UserID:      pgtype.UUID{Bytes: userID, Valid: true},
-		Address:     req.Address,
-		Floor:       req.Floor,
-		UnitNo:      req.UnitNo,
+		Address:     strings.TrimSpace(req.Address),
+		Floor:       strings.TrimSpace(req.Floor),
+		UnitNo:      strings.TrimSpace(req.UnitNo),
 		BlockTower:  pgtype.Text{String: getStringValue(req.BlockTower), Valid: req.BlockTower != nil},
 		CompanyName: pgtype.Text{String: getStringValue(req.CompanyName), Valid: req.CompanyName != nil},
 	})
@@ -212,11 +213,11 @@ func (s *Service) UpdateAddress(ctx context.Context, id string, req UpdateAddres
 	// Update address
 	address, err := s.queries.UpdateAddress(ctx, db.UpdateAddressParams{
 		ID:          pgtype.UUID{Bytes: addressID, Valid: true},
-		Address:     pgtype.Text{String: getStringValue(req.Address), Valid: req.Address != nil},
-		Floor:       pgtype.Text{String: getStringValue(req.Floor), Valid: req.Floor != nil},
-		UnitNo:      pgtype.Text{String: getStringValue(req.UnitNo), Valid: req.UnitNo != nil},
-		BlockTower:  pgtype.Text{String: getStringValue(req.BlockTower), Valid: req.BlockTower != nil},
-		CompanyName: pgtype.Text{String: getStringValue(req.CompanyName), Valid: req.CompanyName != nil},
+		Address:     pgtype.Text{String: strings.TrimSpace(getStringValue(req.Address)), Valid: req.Address != nil},
+		Floor:       pgtype.Text{String: strings.TrimSpace(getStringValue(req.Floor)), Valid: req.Floor != nil},
+		UnitNo:      pgtype.Text{String: strings.TrimSpace(getStringValue(req.UnitNo)), Valid: req.UnitNo != nil},
+		BlockTower:  pgtype.Text{String: strings.TrimSpace(getStringValue(req.BlockTower)), Valid: req.BlockTower != nil},
+		CompanyName: pgtype.Text{String: strings.TrimSpace(getStringValue(req.CompanyName)), Valid: req.CompanyName != nil},
 	})
 	if err != nil {
 		slog.Error("failed to update address", "address_id", id, "error", err)
@@ -253,11 +254,11 @@ func (s *Service) UpdateAddressForUser(ctx context.Context, userID uuid.UUID, ad
 	address, err := s.queries.UpdateAddressForUser(ctx, db.UpdateAddressForUserParams{
 		ID:          pgtype.UUID{Bytes: addrID, Valid: true},
 		UserID:      pgtype.UUID{Bytes: userID, Valid: true},
-		Address:     pgtype.Text{String: getStringValue(req.Address), Valid: req.Address != nil},
-		Floor:       pgtype.Text{String: getStringValue(req.Floor), Valid: req.Floor != nil},
-		UnitNo:      pgtype.Text{String: getStringValue(req.UnitNo), Valid: req.UnitNo != nil},
-		BlockTower:  pgtype.Text{String: getStringValue(req.BlockTower), Valid: req.BlockTower != nil},
-		CompanyName: pgtype.Text{String: getStringValue(req.CompanyName), Valid: req.CompanyName != nil},
+		Address:     pgtype.Text{String: strings.TrimSpace(getStringValue(req.Address)), Valid: req.Address != nil},
+		Floor:       pgtype.Text{String: strings.TrimSpace(getStringValue(req.Floor)), Valid: req.Floor != nil},
+		UnitNo:      pgtype.Text{String: strings.TrimSpace(getStringValue(req.UnitNo)), Valid: req.UnitNo != nil},
+		BlockTower:  pgtype.Text{String: strings.TrimSpace(getStringValue(req.BlockTower)), Valid: req.BlockTower != nil},
+		CompanyName: pgtype.Text{String: strings.TrimSpace(getStringValue(req.CompanyName)), Valid: req.CompanyName != nil},
 	})
 	if err != nil {
 		slog.Error("failed to update address for user", "user_id", userID, "address_id", addressID, "error", err)
@@ -402,13 +403,11 @@ func (s *Service) SetMyDefaultAddress(ctx context.Context, userID uuid.UUID, add
 func toAddressResponse(address *db.Address) *AddressResponse {
 	return &AddressResponse{
 		ID:          uuid.UUID(address.ID.Bytes).String(),
-		UserID:      uuid.UUID(address.UserID.Bytes).String(),
 		Address:     address.Address,
 		Floor:       address.Floor,
 		UnitNo:      address.UnitNo,
 		BlockTower:  getStringPointer(address.BlockTower),
 		CompanyName: getStringPointer(address.CompanyName),
-		CreatedAt:   address.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:   address.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

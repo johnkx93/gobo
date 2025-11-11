@@ -53,13 +53,20 @@ func (h *FrontendHandler) CreateMyAddress(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	address, err := h.service.CreateAddressForUser(r.Context(), userID, req)
+	_, err = h.service.CreateAddressForUser(r.Context(), userID, req)
 	if err != nil {
 		response.HandleServiceError(w, err)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, "address created successfully", address)
+	// Return all addresses for the user after creating
+	addresses, err := h.service.ListMyAddresses(r.Context(), userID)
+	if err != nil {
+		response.HandleServiceError(w, err)
+		return
+	}
+
+	response.JSON(w, http.StatusCreated, "address created successfully", addresses)
 }
 
 // GetMyAddress handles GET /api/v1/addresses/{id}
@@ -152,13 +159,20 @@ func (h *FrontendHandler) UpdateMyAddress(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	address, err := h.service.UpdateAddressForUser(r.Context(), userID, addressID, req)
+	_, err = h.service.UpdateAddressForUser(r.Context(), userID, addressID, req)
 	if err != nil {
 		response.HandleServiceError(w, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, "address updated successfully", address)
+	// Return all addresses for the user after updating
+	addresses, err := h.service.ListMyAddresses(r.Context(), userID)
+	if err != nil {
+		response.HandleServiceError(w, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, "address updated successfully", addresses)
 }
 
 // DeleteMyAddress handles DELETE /api/v1/addresses/{id}
@@ -189,7 +203,14 @@ func (h *FrontendHandler) DeleteMyAddress(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response.JSON(w, http.StatusOK, "address deleted successfully", nil)
+	// Return all addresses for the user after deleting
+	addresses, err := h.service.ListMyAddresses(r.Context(), userID)
+	if err != nil {
+		response.HandleServiceError(w, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, "address deleted successfully", addresses)
 }
 
 // SetMyDefaultAddress handles POST /api/v1/addresses/default
@@ -226,5 +247,12 @@ func (h *FrontendHandler) SetMyDefaultAddress(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	response.JSON(w, http.StatusOK, "default address set successfully", nil)
+	// Return all addresses for the user after setting default
+	addresses, err := h.service.ListMyAddresses(r.Context(), userID)
+	if err != nil {
+		response.HandleServiceError(w, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, "default address set successfully", addresses)
 }

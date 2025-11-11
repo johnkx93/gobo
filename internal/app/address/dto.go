@@ -31,13 +31,11 @@ type UpdateAddressRequest struct {
 // AddressResponse represents the address response
 type AddressResponse struct {
 	ID          string  `json:"id"`
-	UserID      string  `json:"user_id"`
 	Address     string  `json:"address"`
 	Floor       string  `json:"floor"`
 	UnitNo      string  `json:"unit_no"`
 	BlockTower  *string `json:"block_tower,omitempty"`
 	CompanyName *string `json:"company_name,omitempty"`
-	CreatedAt   string  `json:"created_at"`
 	UpdatedAt   string  `json:"updated_at"`
 }
 
