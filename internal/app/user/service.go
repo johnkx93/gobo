@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -33,6 +34,12 @@ func (s *Service) CreateUser(ctx context.Context, req CreateUserRequest) (*UserR
 		slog.Error("failed to hash password", "error", err)
 		return nil, errors.Internal("failed to hash password", err)
 	}
+
+	req.Email = strings.TrimSpace(req.Email)
+	req.Username = strings.TrimSpace(req.Username)
+	req.Password = strings.TrimSpace(req.Password)
+	req.FirstName = strings.TrimSpace(req.FirstName)
+	req.LastName = strings.TrimSpace(req.LastName)
 
 	// Check if user with email already exists
 	_, err = s.queries.GetUserByEmail(ctx, req.Email)
