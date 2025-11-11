@@ -68,7 +68,74 @@ if err := auditService.LogCreate(ctx, "table_name", result.ID, result); err != n
 }
 ```
 
-### 6. Context Propagation
+### 6. Transaction Management for Complex Operations (CRITICAL)
+
+- **ALWAYS** use transactions (`tx.Begin()` / `tx.Rollback()` / `tx.Commit()`) for complex operations involving multiple database writes
+- This prevents **partial data insertion** when one operation fails mid-process
+- Pattern for service methods with multiple database operations:
+
+```go
+func (s *Service) ComplexOperation(ctx context.Context, req Request) (*Response, error) {
+    // Begin transaction
+    tx, err := s.pool.Begin(ctx)
+    if err != nil {
+        s.errorService.LogError(ctx, "TRANSACTION_ERROR", "Failed to begin transaction", err.Error())
+        return nil, apperrors.NewInternalError("failed to start transaction")
+    }
+    defer tx.Rollback() // Always rollback on function exit (no-op if already committed)
+
+    // Use transaction for all queries
+    qtx := s.queries.WithTx(tx)
+
+    // Step 1: First database operation
+    result1, err := qtx.CreateEntity(ctx, params1)
+    if err != nil {
+        // Rollback happens automatically via defer
+        s.errorService.LogError(ctx, "DATABASE_ERROR", "Failed to create entity", err.Error())
+        return nil, apperrors.NewInternalError("failed to create entity")
+    }
+
+    // Step 2: Second database operation
+    result2, err := qtx.UpdateRelatedEntity(ctx, params2)
+    if err != nil {
+        // Rollback happens automatically via defer
+        s.errorService.LogError(ctx, "DATABASE_ERROR", "Failed to update related entity", err.Error())
+        return nil, apperrors.NewInternalError("failed to update related entity")
+    }
+
+    // Step 3: Audit logging (also in transaction)
+    if err := s.auditService.LogCreate(ctx, "entities", result1.ID, result1); err != nil {
+        slog.Warn("failed to log audit", "error", err)
+        // Continue - audit logging failure shouldn't fail the operation
+    }
+
+    // All operations successful - commit transaction
+    if err := tx.Commit(); err != nil {
+        s.errorService.LogError(ctx, "TRANSACTION_ERROR", "Failed to commit transaction", err.Error())
+        return nil, apperrors.NewInternalError("failed to commit transaction")
+    }
+
+    return toResponse(result1, result2), nil
+}
+```
+
+**When to use transactions:**
+
+- ✅ Creating entity with related records (e.g., User + Address)
+- ✅ Updating multiple tables that must stay consistent
+- ✅ Deleting entity with cascading deletes
+- ✅ Any operation where partial success would leave data inconsistent
+- ❌ Single table INSERT/UPDATE/DELETE (not needed)
+- ❌ Read-only queries (not needed)
+
+**Key points:**
+
+- `defer tx.Rollback()` ensures cleanup even if function panics
+- `tx.Rollback()` after `tx.Commit()` is a no-op (safe to call)
+- Use `queries.WithTx(tx)` to execute queries within the transaction
+- **All or nothing** - either all operations succeed, or none do
+
+### 7. Context Propagation
 
 - Always pass `context.Context` through the call chain
 - Audit context (user_id, request_id, ip_address, user_agent) is automatically available via middleware
@@ -225,6 +292,309 @@ CREATE TRIGGER trigger_update_new_entity_updated_at
 - Write tests for new services and handlers
 - Run tests before committing: `make test`
 - For coverage reports: `make test-coverage`
+
+#### Unit Testing Guidelines (On-Demand)
+
+Unit tests are created when requested, not automatically. Follow this two-step process:
+
+**Step 1: Service Layer Unit Tests (Validation Focus)**
+
+1. **Analyze Service Layer:**
+
+   - Identify all public methods in service files
+   - Understand validation rules and business logic
+   - Note dependencies (database, audit service)
+
+2. **Identify Unit-Testable Logic (No DB Required):**
+
+   - ✅ Input validation (UUID parsing, required fields)
+   - ✅ Helper functions (getStringValue, toResponse converters)
+   - ✅ Error handling (correct error types/codes)
+   - ✅ Business logic without DB
+   - ❌ Database operations (save for integration tests)
+   - ❌ Audit logging (save for integration tests)
+
+3. **Create Service Test Files:**
+
+   - Follow naming: `admin_service.go` → `admin_service_test.go`
+   - Same package as the code being tested
+   - Structure:
+
+     ```go
+     package modulename
+
+     import (
+         "context"
+         "testing"
+         // imports
+     )
+
+     // 1. Test helper functions
+     // 2. Test service methods (validation focus)
+     ```
+
+4. **Write Validation-Focused Tests:**
+
+   - Test validation logic by setting dependencies to `nil`:
+     ```go
+     service := &AdminService{
+         queries: nil,      // Will panic if DB called
+         auditService: nil, // Only testing validation
+     }
+     ```
+   - Use table-driven tests for multiple cases
+   - Pattern:
+
+     ```go
+     func TestServiceMethod_Scenario(t *testing.T) {
+         // Arrange
+         service := &Service{queries: nil, auditService: nil}
+         ctx := context.Background()
+
+         // Act
+         _, err := service.Method(ctx, invalidInput)
+
+         // Assert
+         if err == nil {
+             t.Fatal("expected error, got nil")
+         }
+
+         domainErr, ok := err.(*apperrors.DomainError)
+         if !ok {
+             t.Fatalf("expected DomainError, got %T", err)
+         }
+
+         if domainErr.Code != apperrors.CodeValidation {
+             t.Errorf("expected validation error, got: %s", domainErr.Code)
+         }
+     }
+     ```
+
+5. **Run Service Tests:**
+   ```bash
+   go test -v ./internal/app/modulename/... -run "TestAdminService|TestFrontendService"
+   ```
+
+**Step 2: Handler Layer Unit Tests (HTTP Focus)**
+
+1. **Analyze Handler Layer:**
+
+   - Identify all handler methods (admin and frontend)
+   - Understand authentication requirements (admin role, user ID)
+   - Note request/response patterns
+
+2. **Create Handler Test Files:**
+
+   - Follow naming: `admin_handler.go` → `admin_handler_test.go`
+   - Same package as the code being tested
+   - Structure:
+
+     ```go
+     package modulename
+
+     import (
+         "bytes"
+         "context"
+         "encoding/json"
+         "net/http"
+         "net/http/httptest"
+         "testing"
+
+         "github.com/go-chi/chi/v5"
+         "github.com/user/coc/internal/ctxkeys"
+         "github.com/user/coc/internal/validation"
+     )
+
+     // 1. Mock service interfaces
+     // 2. Helper functions (newAdminRequest, newUserRequest)
+     // 3. Test handler methods
+     ```
+
+3. **Create Mock Services:**
+
+   - Define mock interfaces that return controlled responses:
+
+     ```go
+     type MockAdminService struct {
+         CreateFunc func(context.Context, CreateEntityRequest) (*EntityResponse, error)
+         GetFunc    func(context.Context, string) (*EntityResponse, error)
+         // ... other methods
+     }
+
+     func (m *MockAdminService) CreateEntity(ctx context.Context, req CreateEntityRequest) (*EntityResponse, error) {
+         if m.CreateFunc != nil {
+             return m.CreateFunc(ctx, req)
+         }
+         return nil, nil
+     }
+     ```
+
+4. **Create Request Helper Functions:**
+
+   - For admin handlers:
+
+     ```go
+     func newAdminRequest(method, url string, body interface{}) (*http.Request, *httptest.ResponseRecorder) {
+         var reqBody []byte
+         if body != nil {
+             reqBody, _ = json.Marshal(body)
+         }
+         req := httptest.NewRequest(method, url, bytes.NewBuffer(reqBody))
+         req.Header.Set("Content-Type", "application/json")
+
+         // Add admin role to context
+         ctx := context.WithValue(req.Context(), ctxkeys.AdminRoleContextKey, "super_admin")
+         req = req.WithContext(ctx)
+
+         rec := httptest.NewRecorder()
+         return req, rec
+     }
+     ```
+
+   - For frontend handlers:
+
+     ```go
+     func newUserRequest(method, url string, body interface{}) (*http.Request, *httptest.ResponseRecorder) {
+         var reqBody []byte
+         if body != nil {
+             reqBody, _ = json.Marshal(body)
+         }
+         req := httptest.NewRequest(method, url, bytes.NewBuffer(reqBody))
+         req.Header.Set("Content-Type", "application/json")
+
+         // Add user ID to context
+         userID := uuid.New()
+         ctx := context.WithValue(req.Context(), ctxkeys.UserIDContextKey, userID)
+         req = req.WithContext(ctx)
+
+         rec := httptest.NewRecorder()
+         return req, rec
+     }
+     ```
+
+5. **Write Handler Tests (Focus Areas):**
+
+   - **Authentication Tests:**
+
+     ```go
+     func TestAdminHandler_CreateEntity_MissingAdminRole(t *testing.T) {
+         handler := NewAdminHandler(&MockAdminService{}, validation.New())
+         req := httptest.NewRequest("POST", "/entities", nil)
+         // No admin role in context
+         rec := httptest.NewRecorder()
+
+         handler.CreateEntity(rec, req)
+
+         if rec.Code != http.StatusUnauthorized {
+             t.Errorf("expected 401, got %d", rec.Code)
+         }
+     }
+     ```
+
+   - **Missing Parameters Tests:**
+
+     ```go
+     func TestFrontendHandler_GetEntity_MissingEntityID(t *testing.T) {
+         handler := NewFrontendHandler(&MockFrontendService{}, validation.New())
+         req, rec := newUserRequest("GET", "/entities/", nil)
+         // Missing entity ID in URL params
+
+         handler.GetEntity(rec, req)
+
+         if rec.Code != http.StatusBadRequest {
+             t.Errorf("expected 400, got %d", rec.Code)
+         }
+     }
+     ```
+
+   - **Invalid JSON Tests:**
+
+     ```go
+     func TestAdminHandler_CreateEntity_InvalidJSON(t *testing.T) {
+         handler := NewAdminHandler(&MockAdminService{}, validation.New())
+         req, rec := newAdminRequest("POST", "/entities", nil)
+         req.Body = io.NopCloser(bytes.NewBufferString("invalid json"))
+
+         handler.CreateEntity(rec, req)
+
+         if rec.Code != http.StatusBadRequest {
+             t.Errorf("expected 400, got %d", rec.Code)
+         }
+     }
+     ```
+
+   - **Validation Error Tests:**
+
+     ```go
+     func TestAdminHandler_CreateEntity_ValidationError(t *testing.T) {
+         handler := NewAdminHandler(&MockAdminService{}, validation.New())
+         req, rec := newAdminRequest("POST", "/entities", map[string]interface{}{
+             "user_id": "invalid-uuid",
+         })
+
+         handler.CreateEntity(rec, req)
+
+         if rec.Code != http.StatusBadRequest {
+             t.Errorf("expected 400, got %d", rec.Code)
+         }
+     }
+     ```
+
+6. **Run Handler Tests:**
+   ```bash
+   go test -v ./internal/app/modulename/... -run "TestAdminHandler|TestFrontendHandler"
+   ```
+
+**Run All Unit Tests:**
+
+```bash
+go test -v ./internal/app/modulename/...
+go test -v ./internal/app/modulename/... -run TestSpecific
+go test -cover ./internal/app/modulename/...
+```
+
+**Test File Structure Example:**
+
+```
+internal/app/address/
+├── admin_service.go
+├── admin_service_test.go       # Step 1: Service validation tests
+├── admin_handler.go
+├── admin_handler_test.go       # Step 2: Handler HTTP tests
+├── frontend_service.go
+├── frontend_service_test.go    # Step 1: Service validation tests
+├── frontend_handler.go
+├── frontend_handler_test.go    # Step 2: Handler HTTP tests
+├── integration_test.go         # Integration tests with real DB (future)
+└── dto.go
+```
+
+**What Unit Tests Should Cover:**
+
+**Service Tests:**
+
+- Invalid UUID formats
+- Missing required fields (if validated in service)
+- Helper function edge cases (nil pointers, empty strings)
+- Error type and code correctness
+
+**Handler Tests:**
+
+- Missing authentication context (admin role, user ID)
+- Missing URL parameters (entity IDs)
+- Invalid JSON payloads
+- Validation errors (invalid UUIDs, missing fields)
+- HTTP status codes (200, 201, 400, 401, 404)
+- Response structure (status, message, data fields)
+
+**What Unit Tests Should NOT Cover (Use Integration Tests):**
+
+- Database CRUD operations
+- Audit trail creation
+- Complex queries and joins
+- Transaction handling
+- Trigger functionality
+- Full request-to-database workflows
 
 ### 11. Security Best Practices
 
