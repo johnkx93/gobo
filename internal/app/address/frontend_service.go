@@ -3,6 +3,7 @@ package address
 import (
 	"context"
 	"log/slog"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -13,22 +14,22 @@ import (
 	"github.com/user/coc/internal/errors"
 )
 
-// UserService handles user address operations
+// FrontendService handles user address operations
 // Users can only manage their OWN addresses
-type UserService struct {
+type FrontendService struct {
 	queries      *db.Queries
 	auditService *audit.Service
 }
 
-func NewUserService(queries *db.Queries, auditService *audit.Service) *UserService {
-	return &UserService{
+func NewFrontendService(queries *db.Queries, auditService *audit.Service) *FrontendService {
+	return &FrontendService{
 		queries:      queries,
 		auditService: auditService,
 	}
 }
 
 // CreateAddress creates a new address for the authenticated user
-func (s *UserService) CreateAddress(ctx context.Context, userID uuid.UUID, req UserCreateAddressRequest) (*AddressResponse, error) {
+func (s *FrontendService) CreateAddress(ctx context.Context, userID uuid.UUID, req UserCreateAddressRequest) (*AddressResponse, error) {
 	// Create address
 	address, err := s.queries.CreateAddress(ctx, db.CreateAddressParams{
 		UserID:      pgtype.UUID{Bytes: userID, Valid: true},
@@ -47,11 +48,25 @@ func (s *UserService) CreateAddress(ctx context.Context, userID uuid.UUID, req U
 	addressID := uuid.UUID(address.ID.Bytes)
 	s.auditService.LogCreate(ctx, "addresses", addressID, address)
 
+	// If the user has no default address, set this new address as default.
+	userRec, err := s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	if err == nil {
+		if !userRec.DefaultAddressID.Valid {
+			// Attempt to set default; log warning if it fails but don't fail the request
+			if setErr := s.SetDefaultAddress(ctx, userID, addressID.String()); setErr != nil {
+				slog.Warn("failed to set newly created address as default", "user_id", userID, "address_id", addressID, "error", setErr)
+			}
+		}
+	} else if err != pgx.ErrNoRows {
+		// Unexpected DB error while fetching user - log and continue
+		slog.Warn("failed to check user's default address", "user_id", userID, "error", err)
+	}
+
 	return toAddressResponse(&address), nil
 }
 
 // GetAddress retrieves an address by ID (only if it belongs to the user)
-func (s *UserService) GetAddress(ctx context.Context, userID uuid.UUID, addressID string) (*AddressResponse, error) {
+func (s *FrontendService) GetAddress(ctx context.Context, userID uuid.UUID, addressID string) (*AddressResponse, error) {
 	addrID, err := uuid.Parse(addressID)
 	if err != nil {
 		return nil, errors.Validation("invalid address ID format")
@@ -73,24 +88,63 @@ func (s *UserService) GetAddress(ctx context.Context, userID uuid.UUID, addressI
 }
 
 // ListAddresses retrieves all addresses for the authenticated user
-func (s *UserService) ListAddresses(ctx context.Context, userID uuid.UUID) ([]*AddressResponse, error) {
+func (s *FrontendService) ListAddresses(ctx context.Context, userID uuid.UUID) ([]*AddressResponse, error) {
 	addresses, err := s.queries.GetAddressesByUserID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
 	if err != nil {
 		slog.Error("failed to list user addresses", "user_id", userID, "error", err)
 		return nil, errors.Internal("failed to list addresses", err)
 	}
 
+	// Fetch user to get DefaultAddressID for marking IsDefault
+	userRec, err := s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	if err != nil {
+		// If user missing, log and continue returning addresses without defaults
+		if err != pgx.ErrNoRows {
+			slog.Error("failed to get user for default address check", "user_id", userID, "error", err)
+			return nil, errors.Internal("failed to list addresses", err)
+		}
+	}
+
+	// Sort addresses: default first, then updated_at desc
+	if userRec.DefaultAddressID.Valid {
+		defaultID := uuid.UUID(userRec.DefaultAddressID.Bytes)
+		sort.SliceStable(addresses, func(i, j int) bool {
+			ai := uuid.UUID(addresses[i].ID.Bytes)
+			aj := uuid.UUID(addresses[j].ID.Bytes)
+
+			isDefaultI := ai == defaultID
+			isDefaultJ := aj == defaultID
+			if isDefaultI != isDefaultJ {
+				return isDefaultI // true first
+			}
+			// Both same default-ness: sort by updated_at desc
+			return addresses[i].UpdatedAt.Time.After(addresses[j].UpdatedAt.Time)
+		})
+	} else {
+		// No default; just sort by updated_at desc
+		sort.SliceStable(addresses, func(i, j int) bool {
+			return addresses[i].UpdatedAt.Time.After(addresses[j].UpdatedAt.Time)
+		})
+	}
+
 	responses := make([]*AddressResponse, len(addresses))
 	for i, addr := range addresses {
 		a := addr
-		responses[i] = toAddressResponse(&a)
+		resp := toAddressResponse(&a)
+		// Determine if this address is the user's default
+		if userRec.DefaultAddressID.Valid {
+			if uuid.UUID(a.ID.Bytes) == uuid.UUID(userRec.DefaultAddressID.Bytes) {
+				resp.IsDefault = true
+			}
+		}
+		responses[i] = resp
 	}
 
 	return responses, nil
 }
 
 // UpdateAddress updates an address (only if it belongs to the user)
-func (s *UserService) UpdateAddress(ctx context.Context, userID uuid.UUID, addressID string, req UserUpdateAddressRequest) (*AddressResponse, error) {
+func (s *FrontendService) UpdateAddress(ctx context.Context, userID uuid.UUID, addressID string, req UserUpdateAddressRequest) (*AddressResponse, error) {
 	addrID, err := uuid.Parse(addressID)
 	if err != nil {
 		return nil, errors.Validation("invalid address ID format")
@@ -131,7 +185,7 @@ func (s *UserService) UpdateAddress(ctx context.Context, userID uuid.UUID, addre
 }
 
 // DeleteAddress deletes an address (only if it belongs to the user)
-func (s *UserService) DeleteAddress(ctx context.Context, userID uuid.UUID, addressID string) error {
+func (s *FrontendService) DeleteAddress(ctx context.Context, userID uuid.UUID, addressID string) error {
 	addrID, err := uuid.Parse(addressID)
 	if err != nil {
 		return errors.Validation("invalid address ID format")
@@ -167,7 +221,7 @@ func (s *UserService) DeleteAddress(ctx context.Context, userID uuid.UUID, addre
 }
 
 // SetDefaultAddress sets the default address for the authenticated user
-func (s *UserService) SetDefaultAddress(ctx context.Context, userID uuid.UUID, addressID string) error {
+func (s *FrontendService) SetDefaultAddress(ctx context.Context, userID uuid.UUID, addressID string) error {
 	addrID, err := uuid.Parse(addressID)
 	if err != nil {
 		return errors.Validation("invalid address ID format")

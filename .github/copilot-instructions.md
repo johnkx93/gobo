@@ -386,9 +386,9 @@ docker exec -it $(docker ps -q -f name=postgres) psql -U postgres -d appdb -c "Y
 #### File Names:
 
 - **Admin handlers:** `admin_handler.go` (NOT `handler_admin.go`)
-- **User/frontend handlers:** `frontend_handler.go` (NOT `handler_frontend.go`)
+- **frontend handlers:** `frontend_handler.go` (NOT `handler_frontend.go`)
 - **Admin services:** `admin_service.go` (NOT `service_admin.go`)
-- **User services:** `user_service.go` (NOT `service_user.go`)
+- **Frontend services:** `frontend_service.go` (NOT `service_frontend.go`)
 - **DTOs:** `dto.go`
 - **Single handler:** `handler.go` (for modules with only one user type)
 - **Single service:** `service.go` (for modules with only one user type)
@@ -401,7 +401,7 @@ internal/app/order/
 ├── admin_handler.go
 ├── admin_service.go
 ├── frontend_handler.go
-├── user_service.go
+├── frontend_service.go
 └── dto.go
 
 ❌ INCORRECT:
@@ -416,9 +416,9 @@ internal/app/order/
 #### Struct Names:
 
 - **Admin handlers:** `AdminHandler` (injected with `AdminService`)
-- **Frontend handlers:** `FrontendHandler` (injected with `UserService`)
+- **Frontend handlers:** `FrontendHandler` (injected with `FrontendService`)
 - **Admin services:** `AdminService`
-- **User services:** `UserService`
+- **Frontend services:** `FrontendService`
 
 #### Method Names:
 
@@ -433,15 +433,15 @@ func (s *AdminService) UpdateEntity(...)
 func (s *AdminService) DeleteEntity(...)
 ```
 
-**User Service Methods** (no prefix needed):
+**Frontend Service Methods** (no prefix needed):
 
 ```go
-// UserService methods - enforce ownership
-func (s *UserService) CreateEntity(ctx, userID uuid.UUID, ...)
-func (s *UserService) GetEntity(ctx, userID uuid.UUID, entityID, ...)
-func (s *UserService) ListEntities(ctx, userID uuid.UUID, ...)
-func (s *UserService) UpdateEntity(ctx, userID uuid.UUID, entityID, ...)
-func (s *UserService) DeleteEntity(ctx, userID uuid.UUID, entityID, ...)
+// FrontendService methods - enforce ownership
+func (s *FrontendService) CreateEntity(ctx, userID uuid.UUID, ...)
+func (s *FrontendService) GetEntity(ctx, userID uuid.UUID, entityID, ...)
+func (s *FrontendService) ListEntities(ctx, userID uuid.UUID, ...)
+func (s *FrontendService) UpdateEntity(ctx, userID uuid.UUID, entityID, ...)
+func (s *FrontendService) DeleteEntity(ctx, userID uuid.UUID, entityID, ...)
 ```
 
 **Handler Methods** (match service method names):
@@ -469,15 +469,15 @@ type UpdateEntityRequest struct {
 }
 ```
 
-**User DTOs** (prefix with "User", no userID field):
+**Frontend DTOs** (prefix with "Frontend", no userID field):
 
 ```go
-type UserCreateEntityRequest struct {
+type FrontendCreateEntityRequest struct {
     // NO UserID field - enforced by service
     Name string `json:"name" validate:"required"`
 }
 
-type UserUpdateEntityRequest struct {
+type FrontendUpdateEntityRequest struct {
     Name *string `json:"name" validate:"omitempty"`
 }
 ```
@@ -501,15 +501,15 @@ type EntityResponse struct {
 
   - Each module folder structure depends on usage:
 
-  **For Shared Modules (both admin and user):**
+  **For Shared Modules (both admin and frontend):**
 
   ```
   internal/app/entity/
-  ├── dto.go              # Shared DTOs (both admin and user)
+  ├── dto.go              # Shared DTOs (both admin and frontend)
   ├── admin_handler.go    # Admin HTTP handlers
   ├── admin_service.go    # Admin business logic
-  ├── frontend_handler.go # User HTTP handlers
-  └── user_service.go     # User business logic with ownership checks
+  ├── frontend_handler.go # Frontend HTTP handlers
+  └── frontend_service.go # Frontend business logic with ownership checks
   ```
 
   **For Admin-Only Modules:**
@@ -521,10 +521,10 @@ type EntityResponse struct {
   └── service.go
   ```
 
-  **For User-Only Modules:**
+  **For Frontend-Only Modules:**
 
   ```
-  internal/app/user_auth/
+  internal/app/frontend_auth/
   ├── dto.go
   ├── handler.go
   └── service.go
@@ -535,8 +535,8 @@ type EntityResponse struct {
 - `internal/middleware/` - HTTP middleware
 - `internal/router/` - Route definitions
   - `router.go` - Main router setup
-  - `admin.go` - Admin routes (protected by admin auth middleware)
-  - `frontend.go` - User-facing routes (protected by user auth middleware)
+  - `admin_router.go` - Admin routes (protected by admin auth middleware)
+  - `frontend_router.go` - Frontend routes (protected by frontend auth middleware)
 - `db/schema/` - Migration files
 - `db/queries/` - SQLC query definitions
 - `scripts/` - Shell scripts for operations

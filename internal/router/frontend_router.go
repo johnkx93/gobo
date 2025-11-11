@@ -30,11 +30,11 @@ func NewFrontendRouter(
 	})
 
 	// Frontend user routes (protected - users can access their own data)
-	r.Route("/users", func(r chi.Router) {
+	r.Route("/user", func(r chi.Router) {
 		r.Use(authMiddleware)
 		// Frontend users can only access/update their own profile
-		r.Get("/me", userFrontendHandler.GetMe)    // Get current user profile
-		r.Put("/me", userFrontendHandler.UpdateMe) // Update current user profile
+		r.Get("/", userFrontendHandler.GetMe)    // Get current user profile
+		r.Put("/", userFrontendHandler.UpdateMe) // Update current user profile
 	})
 
 	// (orders feature removed)

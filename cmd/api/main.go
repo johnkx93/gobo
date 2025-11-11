@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/user/coc/internal/app/address"
+	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
-	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/app/user_auth"
@@ -97,17 +97,17 @@ func main() {
 
 	// Address services (separate for frontend and admin)
 	addressAdminService := address.NewAdminService(queries, auditService)
-	addressUserService := address.NewUserService(queries, auditService)
+	addressFrontendService := address.NewFrontendService(queries, auditService)
 	addressAdminHandler := address.NewAdminHandler(addressAdminService, validator)
-	addressFrontendHandler := address.NewFrontendHandler(addressUserService, validator)
+	addressFrontendHandler := address.NewFrontendHandler(addressFrontendService, validator)
 
 	// Admin authentication service and handler (for admin login)
 	adminAuthService := admin_auth.NewAuthService(queries, cfg.JWTSecret)
 	adminAuthHandler := admin_auth.NewAuthHandler(adminAuthService, validator)
 
 	// Admin CRUD service and handler (for managing admins)
-	adminService := admin_management.NewService(queries, auditService)
-	adminHandler := admin_management.NewHandler(adminService, validator)
+	adminService := admin.NewService(queries, auditService)
+	adminHandler := admin.NewHandler(adminService, validator)
 
 	// Menu handler (for serving admin menu)
 	menuHandler := admin_menu.NewHandler(queries)

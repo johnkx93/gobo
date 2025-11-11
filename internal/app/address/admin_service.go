@@ -3,6 +3,7 @@ package address
 import (
 	"context"
 	"log/slog"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -35,7 +36,7 @@ func (s *AdminService) CreateAddress(ctx context.Context, req CreateAddressReque
 	}
 
 	// Verify user exists
-	_, err = s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
+	userRec, err := s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: userID, Valid: true})
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, errors.NotFound("user not found")
@@ -61,6 +62,14 @@ func (s *AdminService) CreateAddress(ctx context.Context, req CreateAddressReque
 	// Audit log the address creation
 	addressID := uuid.UUID(address.ID.Bytes)
 	s.auditService.LogCreate(ctx, "addresses", addressID, address)
+
+	// If the user has no default address, set this new address as default.
+	if !userRec.DefaultAddressID.Valid {
+		// Attempt to set default; if it fails log warning but don't fail create
+		if setErr := s.SetDefaultAddress(ctx, req.UserID, addressID.String()); setErr != nil {
+			slog.Warn("failed to set newly created address as default", "user_id", req.UserID, "address_id", addressID, "error", setErr)
+		}
+	}
 
 	return toAddressResponse(&address), nil
 }
@@ -97,10 +106,45 @@ func (s *AdminService) ListAddressesByUser(ctx context.Context, userID string) (
 		return nil, errors.Internal("failed to list addresses", err)
 	}
 
+	// Fetch user record to know DefaultAddressID
+	userRec, err := s.queries.GetUserByID(ctx, pgtype.UUID{Bytes: uid, Valid: true})
+	if err != nil {
+		if err != pgx.ErrNoRows {
+			slog.Error("failed to get user for default address check", "user_id", userID, "error", err)
+			return nil, errors.Internal("failed to list addresses", err)
+		}
+	}
+
+	// Sort addresses: default first, then updated_at desc
+	if userRec.DefaultAddressID.Valid {
+		defaultID := uuid.UUID(userRec.DefaultAddressID.Bytes)
+		sort.SliceStable(addresses, func(i, j int) bool {
+			ai := uuid.UUID(addresses[i].ID.Bytes)
+			aj := uuid.UUID(addresses[j].ID.Bytes)
+
+			isDefaultI := ai == defaultID
+			isDefaultJ := aj == defaultID
+			if isDefaultI != isDefaultJ {
+				return isDefaultI // true first
+			}
+			return addresses[i].UpdatedAt.Time.After(addresses[j].UpdatedAt.Time)
+		})
+	} else {
+		sort.SliceStable(addresses, func(i, j int) bool {
+			return addresses[i].UpdatedAt.Time.After(addresses[j].UpdatedAt.Time)
+		})
+	}
+
 	responses := make([]*AddressResponse, len(addresses))
 	for i, addr := range addresses {
 		a := addr
-		responses[i] = toAddressResponse(&a)
+		resp := toAddressResponse(&a)
+		if userRec.DefaultAddressID.Valid {
+			if uuid.UUID(a.ID.Bytes) == uuid.UUID(userRec.DefaultAddressID.Bytes) {
+				resp.IsDefault = true
+			}
+		}
+		responses[i] = resp
 	}
 
 	return responses, nil

@@ -46,6 +46,7 @@ type AddressResponse struct {
 	UnitNo      string  `json:"unit_no"`
 	BlockTower  *string `json:"block_tower,omitempty"`
 	CompanyName *string `json:"company_name,omitempty"`
+	IsDefault   bool    `json:"is_default"`
 	CreatedAt   string  `json:"created_at"`
 	UpdatedAt   string  `json:"updated_at"`
 }

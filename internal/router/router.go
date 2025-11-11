@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/user/coc/internal/app/address"
+	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
-	"github.com/user/coc/internal/app/admin_management"
 	"github.com/user/coc/internal/app/admin_menu"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/app/user_auth"
@@ -23,7 +23,7 @@ func New(
 	addressFrontendHandler *address.FrontendHandler,
 	userAuthHandler *user_auth.Handler,
 	adminAuthHandler *admin_auth.AuthHandler,
-	adminHandler *admin_management.Handler,
+	adminHandler *admin.Handler,
 	menuHandler *admin_menu.Handler,
 	userAuthMiddleware func(http.Handler) http.Handler,
 	adminAuthMiddleware func(http.Handler) http.Handler,

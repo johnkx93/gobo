@@ -206,8 +206,6 @@ func seedUsers(ctx context.Context, queries *db.Queries, count int) ([]pgtype.UU
 	return userIDs, nil
 }
 
-
-
 func seedAddresses(ctx context.Context, queries *db.Queries, userIDs []pgtype.UUID, count int) (int, error) {
 	if len(userIDs) == 0 {
 		return 0, fmt.Errorf("no users available to create addresses for")

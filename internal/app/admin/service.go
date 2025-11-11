@@ -1,4 +1,4 @@
-package admin_management
+package admin
 
 import (
 	"context"

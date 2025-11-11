@@ -19,13 +19,14 @@ type UpdateUserRequest struct {
 
 // UserResponse represents the user response
 type UserResponse struct {
-	ID        string `json:"id"`
-	Email     string `json:"email"`
-	Username  string `json:"username"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	ID               string `json:"id"`
+	Email            string `json:"email"`
+	Username         string `json:"username"`
+	FirstName        string `json:"first_name,omitempty"`
+	LastName         string `json:"last_name,omitempty"`
+	DefaultAddressID string `json:"default_address_id,omitempty"`
+	CreatedAt        string `json:"created_at"`
+	UpdatedAt        string `json:"updated_at"`
 }
 
 // ListUsersRequest represents the request to list users

@@ -14,11 +14,11 @@ import (
 // FrontendHandler handles frontend/customer-facing address operations
 // Users can only access and modify their OWN addresses
 type FrontendHandler struct {
-	service  *UserService
+	service  *FrontendService
 	validate *validation.Validator
 }
 
-func NewFrontendHandler(service *UserService, validator *validation.Validator) *FrontendHandler {
+func NewFrontendHandler(service *FrontendService, validator *validation.Validator) *FrontendHandler {
 	return &FrontendHandler{
 		service:  service,
 		validate: validator,

@@ -188,6 +188,13 @@ func toUserResponse(user *db.User) *UserResponse {
 		Username:  user.Username,
 		FirstName: user.FirstName.String,
 		LastName:  user.LastName.String,
+		// DefaultAddressID: func() string {
+		// 	// pgtype.UUID uses the Valid field to indicate NULLability
+		// 	if !user.DefaultAddressID.Valid {
+		// 		return "0"
+		// 	}
+		// 	return uuid.UUID(user.DefaultAddressID.Bytes).String()
+		// }(),
 		CreatedAt: user.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt: user.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
 	}
