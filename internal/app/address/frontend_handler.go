@@ -125,6 +125,15 @@ func (h *FrontendHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
 
 // ListAddresses handles GET /api/v1/addresses
 // User lists all their own addresses
+// @Summary      List user addresses
+// @Description  Retrieve all addresses for the authenticated user
+// @Tags         User Addresses
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} response.JSONResponse{data=[]AddressResponse} "Addresses retrieved successfully"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/v1/addresses [get]
 func (h *FrontendHandler) ListAddresses(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr, ok := ctxkeys.GetUserID(r)
@@ -150,6 +159,19 @@ func (h *FrontendHandler) ListAddresses(w http.ResponseWriter, r *http.Request) 
 
 // UpdateAddress handles PUT /api/v1/addresses/{id}
 // User updates their own address
+// @Summary      Update user address
+// @Description  Update a specific address for the authenticated user
+// @Tags         User Addresses
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Address ID"
+// @Param        request body UserUpdateAddressRequest true "Address update data"
+// @Success      200 {object} response.JSONResponse{data=[]AddressResponse} "Address updated successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/v1/addresses/{id} [put]
 func (h *FrontendHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr, ok := ctxkeys.GetUserID(r)
@@ -200,6 +222,18 @@ func (h *FrontendHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) 
 
 // DeleteAddress handles DELETE /api/v1/addresses/{id}
 // User deletes their own address
+// @Summary      Delete user address
+// @Description  Delete a specific address for the authenticated user
+// @Tags         User Addresses
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Address ID"
+// @Success      200 {object} response.JSONResponse{data=[]AddressResponse} "Address deleted successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/v1/addresses/{id} [delete]
 func (h *FrontendHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr, ok := ctxkeys.GetUserID(r)
@@ -238,6 +272,18 @@ func (h *FrontendHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) 
 
 // SetDefaultAddress handles POST /api/v1/addresses/default
 // User sets their default address
+// @Summary      Set default address
+// @Description  Set a specific address as the default for the authenticated user
+// @Tags         User Addresses
+// @Accept       json
+// @Produce      json
+// @Param        request body SetDefaultAddressRequest true "Default address data"
+// @Success      200 {object} response.JSONResponse{data=[]AddressResponse} "Default address set successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/v1/addresses/default [post]
 func (h *FrontendHandler) SetDefaultAddress(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr, ok := ctxkeys.GetUserID(r)

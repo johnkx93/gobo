@@ -27,6 +27,17 @@ func NewAdminHandler(service *AdminService, validator *validation.Validator) *Ad
 
 // CreateAddress handles POST /api/admin/v1/addresses
 // Admin creates a new address for any user
+// @Summary      Create address (admin)
+// @Description  Create a new address for any user as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateAddressRequest true "Address data"
+// @Success      201 {object} response.JSONResponse{data=AddressResponse} "Address created successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/addresses [post]
 func (h *AdminHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -58,6 +69,18 @@ func (h *AdminHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 
 // GetAddress handles GET /api/admin/v1/addresses/{id}
 // Admin can get ANY address by ID
+// @Summary      Get address (admin)
+// @Description  Retrieve any address by ID as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Address ID"
+// @Success      200 {object} response.JSONResponse{data=AddressResponse} "Address retrieved successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/addresses/{id} [get]
 func (h *AdminHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -83,6 +106,17 @@ func (h *AdminHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
 
 // ListAllAddresses handles GET /api/admin/v1/addresses
 // Admin can list ALL addresses with pagination
+// @Summary      List all addresses (admin)
+// @Description  Retrieve all addresses with pagination as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        limit query int false "Number of addresses to return (default 10)"
+// @Param        offset query int false "Number of addresses to skip (default 0)"
+// @Success      200 {object} response.JSONResponse{data=[]AddressResponse} "Addresses retrieved successfully"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/addresses [get]
 func (h *AdminHandler) ListAllAddresses(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -109,6 +143,17 @@ func (h *AdminHandler) ListAllAddresses(w http.ResponseWriter, r *http.Request) 
 
 // ListAddressesByUser handles GET /api/admin/v1/users/{user_id}/addresses
 // Admin can list all addresses for a specific user
+// @Summary      List user addresses (admin)
+// @Description  Retrieve all addresses for a specific user as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        user_id path string true "User ID"
+// @Success      200 {object} response.JSONResponse{data=[]AddressResponse} "Addresses retrieved successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users/{user_id}/addresses [get]
 func (h *AdminHandler) ListAddressesByUser(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -134,6 +179,19 @@ func (h *AdminHandler) ListAddressesByUser(w http.ResponseWriter, r *http.Reques
 
 // UpdateAddress handles PUT /api/admin/v1/addresses/{id}
 // Admin can update ANY address
+// @Summary      Update address (admin)
+// @Description  Update any address by ID as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Address ID"
+// @Param        request body UpdateAddressRequest true "Address update data"
+// @Success      200 {object} response.JSONResponse{data=AddressResponse} "Address updated successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/addresses/{id} [put]
 func (h *AdminHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -171,6 +229,18 @@ func (h *AdminHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 
 // DeleteAddress handles DELETE /api/admin/v1/addresses/{id}
 // Admin can delete ANY address
+// @Summary      Delete address (admin)
+// @Description  Delete any address by ID as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Address ID"
+// @Success      200 {object} response.JSONResponse "Address deleted successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/addresses/{id} [delete]
 func (h *AdminHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -196,6 +266,19 @@ func (h *AdminHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 
 // SetDefaultAddress handles POST /api/admin/v1/users/{user_id}/addresses/default
 // Admin can set default address for any user
+// @Summary      Set default address (admin)
+// @Description  Set a default address for any user as an admin
+// @Tags         Admin Addresses
+// @Accept       json
+// @Produce      json
+// @Param        user_id path string true "User ID"
+// @Param        request body SetDefaultAddressRequest true "Default address data"
+// @Success      200 {object} response.JSONResponse "Default address set successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users/{user_id}/addresses/default [post]
 func (h *AdminHandler) SetDefaultAddress(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
