@@ -66,6 +66,12 @@ migrate-create: ## Create new migration (usage: make migrate-create name=create_
 sqlc-generate: ## Generate sqlc code
 	sqlc generate
 
+swagger: ## Generate Swagger documentation
+	@echo "Generating Swagger documentation..."
+	@$(HOME)/go/bin/swag init -g cmd/api/main.go -o docs/swagger --parseDependency --parseInternal
+	@echo "✅ Swagger docs generated at docs/swagger"
+	@echo "📚 Access Swagger UI at http://localhost:8080/swagger/index.html"
+
 run: ## Run the application
 	LOG_LEVEL=debug go run cmd/api/main.go
 

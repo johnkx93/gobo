@@ -25,6 +25,25 @@ import (
 	"github.com/user/coc/internal/validation"
 )
 
+// @title           BO API
+// @version         1.0
+// @description     Backend API for business operations with admin and frontend endpoints
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   John
+// @contact.email  john@chilliapi.com.sg
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 func main() {
 
 	// Setup logger (level can be controlled with LOG_LEVEL env var)

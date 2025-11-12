@@ -27,6 +27,17 @@ func NewFrontendHandler(service *FrontendService, validator *validation.Validato
 
 // CreateAddress handles POST /api/v1/addresses
 // User creates their own address
+// @Summary      Create user address
+// @Description  Create a new address for the authenticated user
+// @Tags         User Addresses
+// @Accept       json
+// @Produce      json
+// @Param        request body UserCreateAddressRequest true "Address data"
+// @Success      201 {object} response.JSONResponse{data=[]AddressResponse} "Address created successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/v1/addresses [post]
 func (h *FrontendHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr, ok := ctxkeys.GetUserID(r)
@@ -71,6 +82,18 @@ func (h *FrontendHandler) CreateAddress(w http.ResponseWriter, r *http.Request) 
 
 // GetAddress handles GET /api/v1/addresses/{id}
 // User gets their own address by ID
+// @Summary      Get user address
+// @Description  Retrieve a specific address for the authenticated user
+// @Tags         User Addresses
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Address ID"
+// @Success      200 {object} response.JSONResponse{data=AddressResponse} "Address retrieved successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Address not found"
+// @Security     BearerAuth
+// @Router       /api/v1/addresses/{id} [get]
 func (h *FrontendHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from context (set by auth middleware)
 	userIDStr, ok := ctxkeys.GetUserID(r)

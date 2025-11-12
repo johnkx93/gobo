@@ -11,6 +11,7 @@ A modular Go backend API using PostgreSQL, Chi router, and sqlc for type-safe da
 - 📝 **Structured Logging**: JSON logging with slog
 - ✅ **Validation**: Request validation with go-playground/validator
 - 🔄 **Graceful Shutdown**: Proper server lifecycle management
+- 📚 **Swagger Documentation**: Interactive API documentation with Swagger UI
 
 ## Project Structure
 
@@ -82,9 +83,7 @@ cd bo
 cp .env.example .env
 ```
 
-
 ### 2.5. Make sure Docker Desktop started
-
 
 ### 3. Start PostgreSQL with Docker
 
@@ -128,11 +127,28 @@ make migrate-up        # Run database migrations
 make migrate-down      # Rollback database migrations
 make migrate-create    # Create new migration (usage: make migrate-create name=create_table)
 make sqlc-generate     # Generate sqlc code
+make swagger           # Generate Swagger documentation
 make run               # Run the application
 make build             # Build the application
 make test              # Run tests
 make clean             # Clean build artifacts
 ```
+
+## API Documentation
+
+Interactive API documentation is available via Swagger UI:
+
+```
+http://localhost:8080/swagger/index.html
+```
+
+After modifying handlers or DTOs, regenerate the documentation:
+
+```bash
+make swagger
+```
+
+For detailed Swagger usage, see [docs/swagger-usage.md](docs/swagger-usage.md)
 
 ## API Endpoints
 
@@ -240,6 +256,7 @@ make migrate-create name=add_new_table
 ```
 
 This creates two files in `db/schema/`:
+
 - `{version}_add_new_table.up.sql`
 - `{version}_add_new_table.down.sql`
 
@@ -259,17 +276,20 @@ go test -v ./...
 ## Production Deployment
 
 1. Build the binary:
+
    ```bash
    make build
    ```
 
 2. Set production environment variables:
+
    ```bash
    export DATABASE_URL="postgresql://..."
    export PORT="8080"
    ```
 
 3. Run migrations:
+
    ```bash
    migrate -path db/schema -database $DATABASE_URL up
    ```
@@ -281,10 +301,10 @@ go test -v ./...
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable       | Description                  | Default                                                             |
+| -------------- | ---------------------------- | ------------------------------------------------------------------- |
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://postgres:postgres@localhost:5432/appdb?sslmode=disable` |
-| `PORT` | HTTP server port | `8080` |
+| `PORT`         | HTTP server port             | `8080`                                                              |
 
 ## Tech Stack
 

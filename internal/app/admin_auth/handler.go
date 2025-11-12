@@ -22,6 +22,16 @@ func NewAuthHandler(authService *AuthService, validator *validation.Validator) *
 }
 
 // Login handles POST /api/admin/v1/auth/login
+// @Summary      Admin login
+// @Description  Authenticate admin user and receive JWT token
+// @Tags         Admin Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request body LoginRequest true "Login credentials"
+// @Success      200 {object} response.JSONResponse{data=LoginResponse} "Login successful"
+// @Failure      400 {object} response.JSONResponse "Invalid request or credentials"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Router       /api/admin/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

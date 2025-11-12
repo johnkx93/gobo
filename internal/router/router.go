@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/user/coc/internal/app/address"
 	"github.com/user/coc/internal/app/admin"
 	"github.com/user/coc/internal/app/admin_auth"
@@ -12,6 +13,8 @@ import (
 	"github.com/user/coc/internal/app/frontend_auth"
 	"github.com/user/coc/internal/app/user"
 	"github.com/user/coc/internal/middleware"
+
+	_ "github.com/user/coc/docs/swagger" // Import generated swagger docs
 )
 
 // New creates a new HTTP router with all routes configured
@@ -44,6 +47,11 @@ func New(
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
 	})
+
+	// Swagger UI endpoint
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 
 	// Mount frontend API router (customer-facing)
 	r.Mount("/api/v1", NewFrontendRouter(

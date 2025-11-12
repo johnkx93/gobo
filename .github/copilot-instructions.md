@@ -141,7 +141,7 @@ func (s *Service) ComplexOperation(ctx context.Context, req Request) (*Response,
 - Audit context (user_id, request_id, ip_address, user_agent) is automatically available via middleware
 - Use `audit.ExtractAuditContext(ctx)` when needed for manual operations
 
-### 7. Service Layer Structure (CRITICAL)
+### 8. Service Layer Structure (CRITICAL)
 
 #### Separate Services for Admin and User Operations
 
@@ -232,14 +232,14 @@ entityFrontendHandler := entity.NewFrontendHandler(entityUserService, validator)
 - Module is user-only (e.g., `frontend_auth`)
 - No ownership or permission differences
 
-### 8. Migration Safety
+### 9. Migration Safety
 
 - Always create both `.up.sql` and `.down.sql` files
 - Test rollback before committing migrations
 - For production migrations, remind about backup: `make migrate-up-prod` includes automatic backup
 - Never force migrations in production without understanding the issue
 
-### 9. Timestamp Columns (CRITICAL)
+### 10. Timestamp Columns (CRITICAL)
 
 - **ALL tables** (except audit_logs and error_logs) MUST have:
   - `created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL`
@@ -287,7 +287,7 @@ CREATE TRIGGER trigger_update_new_entity_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 ```
 
-### 10. Testing
+### 11. Testing
 
 - Write tests for new services and handlers
 - Run tests before committing: `make test`
@@ -769,14 +769,124 @@ go test -v ./internal/app/modulename/...
 go test -cover ./internal/app/modulename/...
 ```
 
-### 11. Security Best Practices
+### 12. Security Best Practices
 
 - Audit service automatically filters sensitive fields (password_hash, token, secret, etc.)
 - Never log passwords or tokens in plain text
 - Always hash passwords using bcrypt before storing
 - JWT tokens should have appropriate expiration times
 
-### 12. Admin Handler Pattern (CRITICAL)
+### 13. Swagger Documentation (CRITICAL)
+
+- **ALWAYS** add Swagger annotations when creating or modifying handler functions
+- **ALWAYS** regenerate Swagger docs after handler/DTO changes: `make swagger`
+- This ensures API documentation stays in sync with code
+
+#### Handler Annotation Pattern
+
+Every handler function must include:
+
+```go
+// HandlerName handles METHOD /path
+// @Summary      Short description (3-7 words)
+// @Description  Detailed description of what the endpoint does
+// @Tags         Category Name
+// @Accept       json
+// @Produce      json
+// @Param        paramName paramType dataType required "Description"
+// @Success      200 {object} response.JSONResponse{data=ResponseType} "Success message"
+// @Failure      400 {object} response.JSONResponse "Error message"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/v1/path [method]
+func (h *Handler) HandlerName(w http.ResponseWriter, r *http.Request) {
+    // Implementation...
+}
+```
+
+#### Parameter Types
+
+- **Path parameter**: `@Param id path string true "Entity ID"`
+- **Query parameter**: `@Param page query int false "Page number"`
+- **Body parameter**: `@Param request body CreateRequest true "Request data"`
+- **Header parameter**: `@Param Authorization header string true "Bearer token"`
+
+#### Response Types
+
+- **Single object**: `response.JSONResponse{data=UserResponse}`
+- **Array**: `response.JSONResponse{data=[]UserResponse}`
+- **No data**: `response.JSONResponse`
+
+#### DTO Example Tags
+
+Add `example` tags to all DTO fields for better documentation:
+
+```go
+type CreateUserRequest struct {
+    Email    string `json:"email" validate:"required,email" example:"john@example.com"`
+    Username string `json:"username" validate:"required,min=3" example:"johndoe"`
+    Password string `json:"password" validate:"required,min=8" example:"SecurePass123"`
+}
+
+type UserResponse struct {
+    ID        string `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+    Email     string `json:"email" example:"john@example.com"`
+    Username  string `json:"username" example:"johndoe"`
+    CreatedAt string `json:"created_at" example:"2024-01-01T12:00:00Z"`
+}
+```
+
+#### Tag Guidelines
+
+- **@Tags**: Use consistent categories (e.g., "Admin Authentication", "User Profile", "User Addresses")
+- **@Summary**: Keep concise (3-7 words)
+- **@Description**: Explain what the endpoint does and any important details
+- **@Security BearerAuth**: Add for all authenticated endpoints
+- **@Router**: Match exact route path and HTTP method
+
+#### Workflow for New/Modified Handlers
+
+1. **Write handler function** with business logic
+2. **Add Swagger annotations** above the function
+3. **Update DTOs** with `example` tags if needed
+4. **Regenerate docs**: `make swagger`
+5. **Test in Swagger UI**: http://localhost:8080/swagger/index.html
+6. **Verify**: Check endpoint appears correctly in Swagger UI
+
+#### Common Swagger Patterns
+
+**Admin Endpoints**:
+
+```go
+// @Tags         Admin User Management
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users [post]
+```
+
+**Frontend Endpoints**:
+
+```go
+// @Tags         User Profile
+// @Security     BearerAuth
+// @Router       /api/v1/users/me [get]
+```
+
+**Public Endpoints** (no auth):
+
+```go
+// @Tags         Authentication
+// @Router       /api/v1/auth/login [post]
+// (No @Security tag)
+```
+
+#### Quick Reference
+
+- **Swagger UI**: http://localhost:8080/swagger/index.html
+- **Regenerate docs**: `make swagger`
+- **Documentation guide**: `docs/swagger-usage.md`
+- **Response type**: Always use `response.JSONResponse` (not `response.Response`)
+
+### 14. Admin Handler Pattern (CRITICAL)
 
 - **ALWAYS** check admin role at the start of admin handler functions
 - Use `ctxkeys.GetAdminRole(r)` to retrieve the role from context
@@ -800,7 +910,7 @@ func (h *Handler) SomeAdminAction(w http.ResponseWriter, r *http.Request) {
 - All handlers in `internal/app/admin_*` packages must follow this pattern
 - Use `ctxkeys.GetAdminID(r)` when you need the admin's UUID for audit logging
 
-### 13. Permissions and Menu System (CRITICAL)
+### 15. Permissions and Menu System (CRITICAL)
 
 - **ALWAYS** add permissions and menu items when creating new tables/modules
 - Three tables exist for access control:
@@ -857,7 +967,7 @@ SELECT
     (SELECT id FROM permissions WHERE code = 'module.create');
 ```
 
-### 14. Database Access (CRITICAL)
+### 16. Database Access (CRITICAL)
 
 - **ALWAYS** use Docker to access PostgreSQL - never direct psql
 - Pattern for database queries:
