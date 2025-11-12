@@ -68,7 +68,7 @@ sqlc-generate: ## Generate sqlc code
 
 swagger: ## Generate Swagger documentation
 	@echo "Generating Swagger documentation..."
-	@$(HOME)/go/bin/swag init -g cmd/api/main.go -o docs/swagger --parseDependency --parseInternal
+	@$(HOME)/go/bin/swag init -g cmd/api/main.go -o docs/swagger --parseDependency --parseInternal --parseDependencyLevel 3
 	@echo "✅ Swagger docs generated at docs/swagger"
 	@echo "📚 Access Swagger UI at http://localhost:8080/swagger/index.html"
 

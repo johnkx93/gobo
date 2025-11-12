@@ -26,6 +26,17 @@ func NewHandler(service *Service, validator *validation.Validator) *Handler {
 
 // CreateAdmin handles POST /api/admin/v1/admins
 // Only super_admin should be able to create new admins
+// @Summary      Create admin (admin management)
+// @Description  Create a new admin user (requires super_admin role)
+// @Tags         Admin Management
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateAdminRequest true "Admin data"
+// @Success      201 {object} response.JSONResponse{data=internal_app_admin_auth.AdminResponse} "Admin created successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/admins [post]
 func (h *Handler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -56,6 +67,18 @@ func (h *Handler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAdmin handles GET /api/admin/v1/admins/{id}
+// @Summary      Get admin (admin management)
+// @Description  Retrieve an admin user by ID
+// @Tags         Admin Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Admin ID"
+// @Success      200 {object} response.JSONResponse{data=internal_app_admin_auth.AdminResponse} "Admin retrieved successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Admin not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/admins/{id} [get]
 func (h *Handler) GetAdmin(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -80,6 +103,17 @@ func (h *Handler) GetAdmin(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListAdmins handles GET /api/admin/v1/admins
+// @Summary      List admins (admin management)
+// @Description  Retrieve all admin users with pagination
+// @Tags         Admin Management
+// @Accept       json
+// @Produce      json
+// @Param        limit query int false "Number of admins to return (default 10)"
+// @Param        offset query int false "Number of admins to skip (default 0)"
+// @Success      200 {object} response.JSONResponse{data=[]internal_app_admin_auth.AdminResponse} "Admins retrieved successfully"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/admins [get]
 func (h *Handler) ListAdmins(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -105,6 +139,19 @@ func (h *Handler) ListAdmins(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateAdmin handles PUT /api/admin/v1/admins/{id}
+// @Summary      Update admin (admin management)
+// @Description  Update an admin user by ID
+// @Tags         Admin Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Admin ID"
+// @Param        request body UpdateAdminRequest true "Admin update data"
+// @Success      200 {object} response.JSONResponse{data=internal_app_admin_auth.AdminResponse} "Admin updated successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Admin not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/admins/{id} [put]
 func (h *Handler) UpdateAdmin(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -141,6 +188,18 @@ func (h *Handler) UpdateAdmin(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteAdmin handles DELETE /api/admin/v1/admins/{id}
+// @Summary      Delete admin (admin management)
+// @Description  Delete an admin user by ID
+// @Tags         Admin Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Admin ID"
+// @Success      200 {object} response.JSONResponse "Admin deleted successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "Admin not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/admins/{id} [delete]
 func (h *Handler) DeleteAdmin(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
