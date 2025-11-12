@@ -27,6 +27,17 @@ func NewAdminHandler(service *AdminService, validator *validation.Validator) *Ad
 
 // CreateUser handles POST /api/admin/v1/users
 // Admin creates a new user (can create any user)
+// @Summary      Create user (admin)
+// @Description  Create a new user as an admin
+// @Tags         Admin User Management
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateUserRequest true "User data"
+// @Success      201 {object} response.JSONResponse{data=UserResponse} "User created successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users [post]
 func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -58,6 +69,18 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // GetUser handles GET /api/admin/v1/users/{id}
 // Admin can get ANY user by ID
+// @Summary      Get user (admin)
+// @Description  Retrieve a user by ID as an admin
+// @Tags         Admin User Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "User ID"
+// @Success      200 {object} response.JSONResponse{data=UserResponse} "User retrieved successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "User not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users/{id} [get]
 func (h *AdminHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -83,6 +106,17 @@ func (h *AdminHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 // ListUsers handles GET /api/admin/v1/users
 // Admin can list ALL users with pagination
+// @Summary      List users (admin)
+// @Description  Retrieve all users with pagination as an admin
+// @Tags         Admin User Management
+// @Accept       json
+// @Produce      json
+// @Param        limit query int false "Number of users to return (default 10)"
+// @Param        offset query int false "Number of users to skip (default 0)"
+// @Success      200 {object} response.JSONResponse{data=[]UserResponse} "Users retrieved successfully"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users [get]
 func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -109,6 +143,19 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 
 // UpdateUser handles PUT /api/admin/v1/users/{id}
 // Admin can update ANY user
+// @Summary      Update user (admin)
+// @Description  Update a user by ID as an admin
+// @Tags         Admin User Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "User ID"
+// @Param        request body UpdateUserRequest true "User update data"
+// @Success      200 {object} response.JSONResponse{data=UserResponse} "User updated successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "User not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users/{id} [put]
 func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)
@@ -146,6 +193,18 @@ func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 // DeleteUser handles DELETE /api/admin/v1/users/{id}
 // Admin can delete ANY user
+// @Summary      Delete user (admin)
+// @Description  Delete a user by ID as an admin
+// @Tags         Admin User Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "User ID"
+// @Success      200 {object} response.JSONResponse "User deleted successfully"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      404 {object} response.JSONResponse "User not found"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/users/{id} [delete]
 func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// REQUIRED: Check admin role first
 	role, ok := ctxkeys.GetAdminRole(r)

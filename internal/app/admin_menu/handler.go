@@ -22,6 +22,16 @@ func NewHandler(queries *db.Queries) *Handler {
 }
 
 // GetMenu returns the menu structure for the authenticated admin
+// @Summary      Get admin menu
+// @Description  Retrieve the menu structure for the authenticated admin based on their role
+// @Tags         Admin Menu
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} response.JSONResponse "Menu retrieved successfully"
+// @Failure      401 {object} response.JSONResponse "Unauthorized"
+// @Failure      500 {object} response.JSONResponse "Internal server error"
+// @Security     BearerAuth
+// @Router       /api/admin/v1/menu [get]
 func (h *Handler) GetMenu(w http.ResponseWriter, r *http.Request) {
 	// Get admin role from context (set by AdminAuthMiddleware)
 	role, ok := ctxkeys.GetAdminRole(r)

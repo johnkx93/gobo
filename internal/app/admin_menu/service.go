@@ -9,12 +9,12 @@ import (
 
 // MenuItem represents a menu item in the admin panel
 type MenuItem struct {
-	ID       string      `json:"id"`
-	Label    string      `json:"label"`
-	Icon     string      `json:"icon,omitempty"`
-	Path     string      `json:"path,omitempty"`
+	ID       string      `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Label    string      `json:"label" example:"User Management"`
+	Icon     string      `json:"icon,omitempty" example:"users"`
+	Path     string      `json:"path,omitempty" example:"/admin/users"`
 	Children []*MenuItem `json:"children,omitempty"`
-	Order    int         `json:"order"`
+	Order    int         `json:"order" example:"1"`
 }
 
 // GetMenuForRole returns the menu structure from database based on admin role

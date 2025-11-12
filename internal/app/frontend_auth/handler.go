@@ -23,6 +23,16 @@ func NewHandler(service *Service, validator *validation.Validator) *Handler {
 }
 
 // Login handles POST /auth/login
+// @Summary      User login
+// @Description  Authenticate user and receive JWT token
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request body LoginRequest true "Login credentials"
+// @Success      200 {object} response.JSONResponse{data=LoginResponse} "Login successful"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Failure      401 {object} response.JSONResponse "Invalid credentials"
+// @Router       /api/v1/auth/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -62,6 +72,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Register handles POST /auth/register
+// @Summary      User registration
+// @Description  Register a new user account
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request body RegisterRequest true "Registration data"
+// @Success      201 {object} response.JSONResponse{data=LoginResponse} "Registration successful"
+// @Failure      400 {object} response.JSONResponse "Invalid request"
+// @Router       /api/v1/auth/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	// decode request body into DTO
